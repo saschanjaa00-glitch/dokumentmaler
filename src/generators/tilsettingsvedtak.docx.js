@@ -54,9 +54,27 @@ function para(children, opts = {}) {
   })
 }
 
+function normalizeCandidates({ kandidater = [], kandidatnavn = '', kandidatprosent = '', prosent = '' }) {
+  const fromArray = kandidater
+    .filter(candidate => candidate?.navn || candidate?.prosent)
+    .map(candidate => ({
+      navn: candidate.navn || '…',
+      prosent: candidate.prosent || prosent || '…',
+    }))
+
+  if (fromArray.length > 0) return fromArray
+
+  return [{
+    navn: kandidatnavn || '…',
+    prosent: kandidatprosent || prosent || '…',
+  }]
+}
+
 export async function generateTilsettingsvedtakDOCX(data) {
   const {
     skolenavn       = '',
+    stillingstittel = '',
+    stillingId      = '',
     fagomrade       = '',
     stillingstype   = 'vikariat',
     soeknadsfrist   = '',
@@ -74,6 +92,9 @@ export async function generateTilsettingsvedtakDOCX(data) {
     logo            = null,
   } = data
 
+  const candidates = normalizeCandidates({ ...data })
+  const candidateCount = candidates.length
+
   const logoData = logo ? await prepareLogoForDocx(logo, 200) : null
 
   const footerChildren = logoData
@@ -88,11 +109,11 @@ export async function generateTilsettingsvedtakDOCX(data) {
       })]
     : [new Paragraph({ children: [] })]
 
-  const body1 = `Stilling innen ${fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsfrist || '…'}. Det meldte seg ${antallSokere || '…'} søkere til stillingene.`
+  const body1 = `Stilling innen ${fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsfrist || '…'}. Det meldte seg ${antallSokere || '…'} søkere til ${candidateCount > 1 ? 'stillingene' : 'stillingen'}.`
   const body2 = 'Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlig egnethet tilsettes:'
-  const tilsettingLine = tilDato
-    ? `${pronomen} tilsettes i ${kandidattype} fra og med ${fraDato || '…'} til og med ${tilDato}`
-    : `${pronomen} tilsettes i ${kandidattype} fra og med ${fraDato || '…'}`
+  const tilsettingLine = candidateCount > 1
+    ? `Kandidatene tilsettes i ${kandidattype} fra og med ${fraDato || '…'}${tilDato ? ` til og med ${tilDato}` : ''}`
+    : `${pronomen} tilsettes i ${kandidattype} fra og med ${fraDato || '…'}${tilDato ? ` til og med ${tilDato}` : ''}`
 
   // Build team paragraphs
   const teamParas = (team.length > 0 ? team : []).flatMap(member => [
@@ -121,11 +142,13 @@ export async function generateTilsettingsvedtakDOCX(data) {
         // Top spacer
         para([], { before: 4320, after: 0 }),
 
-        // Title
-        para([run('Tilsettingsvedtak', { size: 28, bold: true })], { after: 120 }),
+        para([run('TILSETTINGSVEDTAK', { size: 28, bold: true })], { after: 220 }),
 
-        // Subtitle
-        para([run(`Undervisningsstilling${team.length > 1 ? 'er' : ''} ved ${skolenavn || '…'}`)], { after: 240 }),
+        para([run(stillingstittel || '…', { size: 24, bold: true })], { after: 100 }),
+
+        ...(stillingId.trim()
+          ? [para([run(`ID: ${stillingId}`, { size: 22, color: '6B7280' })], { after: 180 })]
+          : [para([], { after: 120 })]),
 
         // Intervjuteam heading
         para([run('Intervjuteamet har bestått av:', { bold: true })], { after: 80 }),
@@ -134,10 +157,10 @@ export async function generateTilsettingsvedtakDOCX(data) {
         ...teamParas,
 
         // Blank line after team
-        para([], { before: 80, after: 80 }),
+        para([], { before: 100, after: 120 }),
 
         // Tilsetting heading
-        para([run(`Tilsetting i stilling${team.length > 1 ? 'er' : ''} som ${stillingstype} ved ${skolenavn || '…'}`, { bold: true })], { after: 160 }),
+        para([run(`Tilsetting i ${stillingstittel || '…'}`, { bold: true })], { after: 160 }),
 
         // Body 1
         para([run(body1)], { after: 160, line: 360 }),
@@ -145,8 +168,9 @@ export async function generateTilsettingsvedtakDOCX(data) {
         // Body 2
         para([run(body2)], { after: 120, line: 360 }),
 
-        // Candidate line
-        para([run(`${kandidatnavn || '…'}: ${kandidatprosent || '…'}% ${kandidattype}`, { bold: true })], { before: 40, after: 40 }),
+        ...candidates.map(candidate => (
+          para([run(`- ${candidate.navn}: ${candidate.prosent}% ${kandidattype}`)], { before: 40, after: 20 })
+        )),
 
         // Tilsetting period
         para([run(tilsettingLine)], { after: 160 }),

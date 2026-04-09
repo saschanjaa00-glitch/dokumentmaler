@@ -55,9 +55,30 @@ function para(children, opts = {}) {
   })
 }
 
+function normalizeCandidates({ kandidater = [], kandidatnavn = '', kandidatprosent = '', prosent = '' }) {
+  const fromArray = kandidater
+    .filter(candidate => candidate?.navn || candidate?.prosent)
+    .map(candidate => ({
+      navn: candidate.navn || '…',
+      prosent: candidate.prosent || prosent || '…',
+    }))
+
+  if (fromArray.length > 0) return fromArray
+
+  return [{
+    navn: kandidatnavn || '…',
+    prosent: kandidatprosent || prosent || '…',
+  }]
+}
+
+function pluralize(count, singular, plural) {
+  return count === 1 ? singular : plural
+}
+
 export async function generateInnstillingDOCX(data) {
   const {
     skolenavn       = '',
+    stillingstittel = '',
     fagomrade       = '',
     fagene          = '',
     prosent         = '',
@@ -77,6 +98,10 @@ export async function generateInnstillingDOCX(data) {
     logo            = null,
   } = data
 
+  const candidates = normalizeCandidates({ ...data, prosent })
+  const candidateCount = candidates.length
+  const interviewCount = Number(antallIntervju)
+
   const logoData = logo ? await prepareLogoForDocx(logo, 200) : null
 
   const footerChildren = logoData
@@ -95,8 +120,8 @@ export async function generateInnstillingDOCX(data) {
   const sokereText = antallSokere ? antallSokere : '…'
   const intervjuText = antallIntervju ? antallIntervju : '…'
 
-  const body1 = `Stilling innen fagene ${fagene || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsFristText}. Det meldte seg ${sokereText} søkere til stillingen. ${intervjuText} søkere har vært på intervju.`
-  const body2 = `Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet sett opp mot stillingsutlysningen, har fylkesrådmannen ved rektor ${rektorNavn || '…'} innstilt følgende til stillingen(e):`
+  const body1 = `Stilling innen fagene ${fagene || fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsFristText}. Det meldte seg ${sokereText} søkere til ${candidateCount > 1 ? 'stillingene' : 'stillingen'}. ${intervjuText} ${pluralize(interviewCount, 'søker har', 'søkere har')} vært på intervju.`
+  const body2 = `Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet sett opp mot stillingsutlysningen, har fylkesrådmannen ved rektor ${rektorNavn || '…'} innstilt følgende til ${candidateCount > 1 ? 'stillingene' : 'stillingen'}:`
   const vedtakLine = vedtaksdato
     ? `Endelig tilsettingsvedtak gjøres av leder ${vedtaksdato}${vedtakstid ? ` – klokka ${vedtakstid}` : ''}`
     : ''
@@ -120,16 +145,9 @@ export async function generateInnstillingDOCX(data) {
         // Top spacer — ~3" from top
         para([], { before: 4320, after: 0 }),
 
-        // School name — all caps, bold
-        para([run(skolenavn.toUpperCase(), { bold: true, size: 24 })], { after: 160 }),
+        para([run('INNSTILLING', { bold: true, size: 26 })], { after: 220 }),
 
-        // INNSTILLING heading
-        para([run('INNSTILLING:', { bold: true, size: 26 })], { before: 80, after: 40 }),
-
-        // Stilling line
-        para([
-          run(`Undervisningsstilling i ${fagomrade || '…'} – inntil ${prosent || '…'}% ${stillingstype}`, { size: 24 }),
-        ], { after: 40 }),
+        para([run(stillingstittel || '…', { bold: true, size: 24 })], { after: 100 }),
 
         // ID (optional)
         ...(stillingId.trim() ? [
@@ -142,12 +160,13 @@ export async function generateInnstillingDOCX(data) {
         // Body 2
         para([run(body2)], { after: 160, line: 360 }),
 
-        // Candidate line
-        para([run(`${kandidatnavn || '…'}: ${kandidatprosent || prosent || '…'}%`, { bold: true })], { before: 80, after: 40 }),
+        ...candidates.map(candidate => (
+          para([run(`${candidate.navn}: ${candidate.prosent}%`, { bold: true })], { before: 80, after: 40 })
+        )),
 
         // Boilerplate
         para([], { after: 120 }),
-        para([run('Dersom stillingen ikke blir besatt med utgangspunkt i innstillingen, vurderes saken på ny.')], { after: 120, line: 360 }),
+        para([run(`Dersom ${candidateCount > 1 ? 'stillingene' : 'stillingen'} ikke blir besatt med utgangspunkt i innstillingen, vurderes saken på ny.`)], { after: 120, line: 360 }),
 
         // Vedtak line (optional)
         ...(vedtakLine ? [para([run(vedtakLine)], { after: 200 })] : []),

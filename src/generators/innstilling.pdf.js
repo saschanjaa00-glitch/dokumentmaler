@@ -8,9 +8,30 @@ const C = {
   silver: '#6B7280',
 }
 
+function normalizeCandidates({ kandidater = [], kandidatnavn = '', kandidatprosent = '', prosent = '' }) {
+  const fromArray = kandidater
+    .filter(candidate => candidate?.navn || candidate?.prosent)
+    .map(candidate => ({
+      navn: candidate.navn || '…',
+      prosent: candidate.prosent || prosent || '…',
+    }))
+
+  if (fromArray.length > 0) return fromArray
+
+  return [{
+    navn: kandidatnavn || '…',
+    prosent: kandidatprosent || prosent || '…',
+  }]
+}
+
+function pluralize(count, singular, plural) {
+  return count === 1 ? singular : plural
+}
+
 export function generateInnstillingPDF(data) {
   const {
     skolenavn       = '',
+    stillingstittel = '',
     fagomrade       = '',
     fagene          = '',
     prosent         = '',
@@ -30,8 +51,11 @@ export function generateInnstillingPDF(data) {
     logo            = null,
   } = data
 
-  const body1 = `Stilling innen fagene ${fagene || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsfrist || '…'}. Det meldte seg ${antallSokere || '…'} søkere til stillingen. ${antallIntervju || '…'} søkere har vært på intervju.`
-  const body2 = `Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet sett opp mot stillingsutlysningen, har fylkesrådmannen ved rektor ${rektorNavn || '…'} innstilt følgende til stillingen(e):`
+  const candidates = normalizeCandidates({ ...data, prosent })
+  const candidateCount = candidates.length
+  const interviewCount = Number(antallIntervju)
+  const body1 = `Stilling innen fagene ${fagene || fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsfrist || '…'}. Det meldte seg ${antallSokere || '…'} søkere til ${candidateCount > 1 ? 'stillingene' : 'stillingen'}. ${antallIntervju || '…'} ${pluralize(interviewCount, 'søker har', 'søkere har')} vært på intervju.`
+  const body2 = `Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet sett opp mot stillingsutlysningen, har fylkesrådmannen ved rektor ${rektorNavn || '…'} innstilt følgende til ${candidateCount > 1 ? 'stillingene' : 'stillingen'}:`
   const vedtakLine = vedtaksdato
     ? `Endelig tilsettingsvedtak gjøres av leder ${vedtaksdato}${vedtakstid ? ` – klokka ${vedtakstid}` : ''}`
     : null
@@ -62,14 +86,9 @@ export function generateInnstillingPDF(data) {
       // Top spacer ~3"
       { text: '', margin: [0, 216, 0, 0] },
 
-      // School name — bold caps
-      { text: skolenavn.toUpperCase(), fontSize: 12, bold: true, margin: [0, 0, 0, 8] },
+      { text: 'INNSTILLING', fontSize: 14, bold: true, margin: [0, 0, 0, 18] },
 
-      // INNSTILLING heading
-      { text: 'INNSTILLING:', fontSize: 13, bold: true, margin: [0, 4, 0, 4] },
-
-      // Stilling line
-      { text: `Undervisningsstilling i ${fagomrade || '…'} – inntil ${prosent || '…'}% ${stillingstype}`, fontSize: 12, margin: [0, 0, 0, 4] },
+      { text: stillingstittel || '…', fontSize: 12, bold: true, margin: [0, 0, 0, 6] },
 
       // ID (optional)
       ...(stillingId.trim() ? [{ text: `ID: ${stillingId}`, fontSize: 11, color: C.silver, margin: [0, 0, 0, 14] }] : [{ text: '', margin: [0, 0, 0, 10] }]),
@@ -80,12 +99,16 @@ export function generateInnstillingPDF(data) {
       // Body 2
       { text: body2, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 8] },
 
-      // Candidate
-      { text: `${kandidatnavn || '…'}: ${kandidatprosent || prosent || '…'}%`, fontSize: 12, bold: true, margin: [0, 4, 0, 4] },
+      ...candidates.map(candidate => ({
+        text: `${candidate.navn}: ${candidate.prosent}%`,
+        fontSize: 12,
+        bold: true,
+        margin: [0, 4, 0, 4],
+      })),
 
       // Boilerplate blank + text
-      { text: '', margin: [0, 8, 0, 0] },
-      { text: 'Dersom stillingen ikke blir besatt med utgangspunkt i innstillingen, vurderes saken på ny.', fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 8] },
+      { text: '', margin: [0, 12, 0, 0] },
+      { text: `Dersom ${candidateCount > 1 ? 'stillingene' : 'stillingen'} ikke blir besatt med utgangspunkt i innstillingen, vurderes saken på ny.`, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 8] },
 
       // Vedtak line (optional)
       ...(vedtakLine ? [{ text: vedtakLine, fontSize: 12, margin: [0, 0, 0, 16] }] : []),

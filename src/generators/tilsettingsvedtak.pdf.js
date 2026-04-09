@@ -8,9 +8,27 @@ const C = {
   silver: '#6B7280',
 }
 
+function normalizeCandidates({ kandidater = [], kandidatnavn = '', kandidatprosent = '', prosent = '' }) {
+  const fromArray = kandidater
+    .filter(candidate => candidate?.navn || candidate?.prosent)
+    .map(candidate => ({
+      navn: candidate.navn || '…',
+      prosent: candidate.prosent || prosent || '…',
+    }))
+
+  if (fromArray.length > 0) return fromArray
+
+  return [{
+    navn: kandidatnavn || '…',
+    prosent: kandidatprosent || prosent || '…',
+  }]
+}
+
 export function generateTilsettingsvedtakPDF(data) {
   const {
     skolenavn       = '',
+    stillingstittel = '',
+    stillingId      = '',
     fagomrade       = '',
     stillingstype   = 'vikariat',
     soeknadsfrist   = '',
@@ -28,11 +46,13 @@ export function generateTilsettingsvedtakPDF(data) {
     logo            = null,
   } = data
 
-  const body1 = `Stilling innen ${fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsfrist || '…'}. Det meldte seg ${antallSokere || '…'} søkere til stillingene.`
+  const candidates = normalizeCandidates({ ...data })
+  const candidateCount = candidates.length
+  const body1 = `Stilling innen ${fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsfrist || '…'}. Det meldte seg ${antallSokere || '…'} søkere til ${candidateCount > 1 ? 'stillingene' : 'stillingen'}.`
   const body2 = 'Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlig egnethet tilsettes:'
-  const tilsettingLine = tilDato
-    ? `${pronomen} tilsettes i ${kandidattype} fra og med ${fraDato || '…'} til og med ${tilDato}`
-    : `${pronomen} tilsettes i ${kandidattype} fra og med ${fraDato || '…'}`
+  const tilsettingLine = candidateCount > 1
+    ? `Kandidatene tilsettes i ${kandidattype} fra og med ${fraDato || '…'}${tilDato ? ` til og med ${tilDato}` : ''}`
+    : `${pronomen} tilsettes i ${kandidattype} fra og med ${fraDato || '…'}${tilDato ? ` til og med ${tilDato}` : ''}`
 
   const dateStr = new Date().toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.')
   const filename = kandidatnavn
@@ -69,11 +89,11 @@ export function generateTilsettingsvedtakPDF(data) {
       // Top spacer ~3"
       { text: '', margin: [0, 216, 0, 0] },
 
-      // Title
-      { text: 'Tilsettingsvedtak', fontSize: 14, bold: true, margin: [0, 0, 0, 6] },
+      { text: 'TILSETTINGSVEDTAK', fontSize: 14, bold: true, margin: [0, 0, 0, 18] },
 
-      // Subtitle
-      { text: `Undervisningsstilling${team.length > 1 ? 'er' : ''} ved ${skolenavn || '…'}`, fontSize: 12, margin: [0, 0, 0, 14] },
+      { text: stillingstittel || '…', fontSize: 12, bold: true, margin: [0, 0, 0, 6] },
+
+      ...(stillingId.trim() ? [{ text: `ID: ${stillingId}`, fontSize: 11, color: C.silver, margin: [0, 0, 0, 14] }] : [{ text: '', margin: [0, 0, 0, 10] }]),
 
       // Intervjuteam heading
       { text: 'Intervjuteamet har bestått av:', fontSize: 12, bold: true, margin: [0, 0, 0, 6] },
@@ -82,11 +102,11 @@ export function generateTilsettingsvedtakPDF(data) {
       ...teamRows,
 
       // Gap
-      { text: '', margin: [0, 10, 0, 0] },
+      { text: '', margin: [0, 18, 0, 0] },
 
       // Tilsetting heading
       {
-        text: `Tilsetting i stilling${team.length > 1 ? 'er' : ''} som ${stillingstype} ved ${skolenavn || '…'}`,
+        text: `Tilsetting i ${stillingstittel || '…'}`,
         fontSize: 12, bold: true, margin: [0, 0, 0, 10],
       },
 
@@ -96,8 +116,11 @@ export function generateTilsettingsvedtakPDF(data) {
       // Body 2
       { text: body2, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 6] },
 
-      // Candidate
-      { text: `${kandidatnavn || '…'}: ${kandidatprosent || '…'}% ${kandidattype}`, fontSize: 12, bold: true, margin: [0, 2, 0, 2] },
+      ...candidates.map(candidate => ({
+        text: `- ${candidate.navn}: ${candidate.prosent}% ${kandidattype}`,
+        fontSize: 12,
+        margin: [24, 2, 0, 2],
+      })),
 
       // Tilsetting period
       { text: tilsettingLine, fontSize: 12, margin: [0, 0, 0, 16] },
