@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Receipt, BarChart2, Mail, FileText, Home, FileSignature, ClipboardList, UserCheck } from 'lucide-react'
+import { FileText, Home, FileSignature, ClipboardList, UserCheck } from 'lucide-react'
 
 const navItems = [
   {
@@ -7,24 +7,6 @@ const navItems = [
     icon: Home,
     label: 'Home',
     end: true,
-  },
-  {
-    to: '/invoice',
-    icon: Receipt,
-    label: 'Invoice',
-    formats: ['PDF', 'DOCX'],
-  },
-  {
-    to: '/report',
-    icon: BarChart2,
-    label: 'Business Report',
-    formats: ['PDF'],
-  },
-  {
-    to: '/letter',
-    icon: Mail,
-    label: 'Professional Letter',
-    formats: ['PDF', 'DOCX'],
   },
   {
     to: '/fullmakt',

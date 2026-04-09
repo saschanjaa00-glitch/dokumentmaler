@@ -1,37 +1,7 @@
 import { Link } from 'react-router-dom'
-import { Receipt, BarChart2, Mail, FileSignature, ArrowRight, ClipboardList, UserCheck } from 'lucide-react'
+import { FileSignature, ArrowRight, ClipboardList, UserCheck } from 'lucide-react'
 
 const templates = [
-  {
-    to: '/invoice',
-    icon: Receipt,
-    title: 'Invoice',
-    description:
-      'Professional invoices with itemized billing, tax calculations, and payment terms.',
-    color: '#d97706',
-    bg: '#fffbeb',
-    formats: ['PDF', 'DOCX'],
-  },
-  {
-    to: '/report',
-    icon: BarChart2,
-    title: 'Business Report',
-    description:
-      'Comprehensive reports with executive summaries, key metrics tables, and analysis sections.',
-    color: '#2563eb',
-    bg: '#eff6ff',
-    formats: ['PDF'],
-  },
-  {
-    to: '/letter',
-    icon: Mail,
-    title: 'Professional Letter',
-    description:
-      'Formal letters and correspondence with a polished letterhead and clean layout.',
-    color: '#059669',
-    bg: '#f0fdf4',
-    formats: ['PDF', 'DOCX'],
-  },
   {
     to: '/fullmakt',
     icon: FileSignature,
