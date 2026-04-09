@@ -1,0 +1,121 @@
+import pdfMake from 'pdfmake/build/pdfmake'
+import pdfFonts from 'pdfmake/build/vfs_fonts'
+
+pdfMake.vfs = pdfFonts.pdfMake?.vfs ?? pdfFonts.vfs ?? pdfFonts
+
+const C = {
+  ink:    '#1C2B3A',
+  silver: '#6B7280',
+}
+
+export function generateTilsettingsvedtakPDF(data) {
+  const {
+    skolenavn       = '',
+    fagomrade       = '',
+    stillingstype   = 'vikariat',
+    soeknadsfrist   = '',
+    antallSokere    = '',
+    kandidatnavn    = '',
+    kandidatprosent = '',
+    kandidattype    = 'vikariat',
+    pronomen        = 'Han',
+    fraDato         = '',
+    tilDato         = '',
+    utstedelsesdato = '',
+    signaturnavn    = '',
+    signaturttittel = 'Rektor',
+    team            = [],
+    logo            = null,
+  } = data
+
+  const body1 = `Stilling innen ${fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsfrist || '…'}. Det meldte seg ${antallSokere || '…'} søkere til stillingene.`
+  const body2 = 'Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlig egnethet tilsettes:'
+  const tilsettingLine = tilDato
+    ? `${pronomen} tilsettes i ${kandidattype} fra og med ${fraDato || '…'} til og med ${tilDato}`
+    : `${pronomen} tilsettes i ${kandidattype} fra og med ${fraDato || '…'}`
+
+  const dateStr = new Date().toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.')
+  const filename = kandidatnavn
+    ? `Tilsettingsvedtak - ${dateStr} - ${kandidatnavn}.pdf`
+    : `Tilsettingsvedtak - ${dateStr}.pdf`
+
+  // Build team rows for PDF
+  const teamRows = (team.length > 0 ? team : []).flatMap(member => [{
+    columns: [
+      { text: member.navn || '', bold: true, width: '*', fontSize: 12 },
+      { text: member.tittel || '', color: C.silver, width: '*', fontSize: 12 },
+    ],
+    margin: [0, 0, 0, 2],
+  }])
+
+  const docDefinition = {
+    pageSize: 'A4',
+    pageMargins: [101, 72, 101, logo ? 116 : 72],
+
+    footer: logo
+      ? { image: 'companyLogo', fit: [180, 100], alignment: 'center', margin: [0, 10, 0, 0] }
+      : undefined,
+
+    images: logo ? { companyLogo: logo } : {},
+
+    defaultStyle: {
+      font: 'Roboto',
+      fontSize: 12,
+      color: C.ink,
+      lineHeight: 1.15,
+    },
+
+    content: [
+      // Top spacer ~3"
+      { text: '', margin: [0, 216, 0, 0] },
+
+      // Title
+      { text: 'Tilsettingsvedtak', fontSize: 14, bold: true, margin: [0, 0, 0, 6] },
+
+      // Subtitle
+      { text: `Undervisningsstilling${team.length > 1 ? 'er' : ''} ved ${skolenavn || '…'}`, fontSize: 12, margin: [0, 0, 0, 14] },
+
+      // Intervjuteam heading
+      { text: 'Intervjuteamet har bestått av:', fontSize: 12, bold: true, margin: [0, 0, 0, 6] },
+
+      // Team rows
+      ...teamRows,
+
+      // Gap
+      { text: '', margin: [0, 10, 0, 0] },
+
+      // Tilsetting heading
+      {
+        text: `Tilsetting i stilling${team.length > 1 ? 'er' : ''} som ${stillingstype} ved ${skolenavn || '…'}`,
+        fontSize: 12, bold: true, margin: [0, 0, 0, 10],
+      },
+
+      // Body 1
+      { text: body1, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 10] },
+
+      // Body 2
+      { text: body2, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 6] },
+
+      // Candidate
+      { text: `${kandidatnavn || '…'}: ${kandidatprosent || '…'}% ${kandidattype}`, fontSize: 12, bold: true, margin: [0, 2, 0, 2] },
+
+      // Tilsetting period
+      { text: tilsettingLine, fontSize: 12, margin: [0, 0, 0, 16] },
+
+      // Sign-off gap + location/date
+      { text: '', margin: [0, 14, 0, 0] },
+      { text: `${skolenavn || '…'}, ${utstedelsesdato || '…'}`, fontSize: 12, margin: [0, 0, 0, 2] },
+
+      // Gap before signer
+      { text: '', margin: [0, 28, 0, 0] },
+
+      // Signer name
+      { text: signaturnavn, fontSize: 12, bold: true, margin: [0, 0, 0, 2] },
+
+      // Signer title
+      { text: signaturttittel, fontSize: 12, color: C.silver },
+    ],
+  }
+
+  pdfMake.createPdf(docDefinition).download(filename)
+}
