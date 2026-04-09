@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { FileText, Home, FileSignature, ClipboardList, UserCheck } from 'lucide-react'
+import { FileText, Home, FileSignature, ClipboardList } from 'lucide-react'
 
 const navItems = [
   {
@@ -15,15 +15,9 @@ const navItems = [
     formats: ['PDF', 'DOCX'],
   },
   {
-    to: '/innstilling',
+    to: '/ansettelse',
     icon: ClipboardList,
-    label: 'Innstilling',
-    formats: ['PDF', 'DOCX'],
-  },
-  {
-    to: '/tilsettingsvedtak',
-    icon: UserCheck,
-    label: 'Tilsettingsvedtak',
+    label: 'Ansettelse',
     formats: ['PDF', 'DOCX'],
   },
 ]

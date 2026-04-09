@@ -249,6 +249,10 @@ body {
   width: 100%;
 }
 
+.page-body-wide {
+  max-width: 1180px;
+}
+
 /* ─── Form Cards ──────────────────────────────────────────── */
 
 .form-card {
@@ -343,6 +347,14 @@ body {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
 }
 
+.field input:disabled,
+.field select:disabled,
+.field textarea:disabled {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
 .field input::placeholder,
 .field textarea::placeholder {
   color: var(--text-faint);
@@ -367,6 +379,20 @@ body {
   font-size: 11px;
   color: var(--text-faint);
   margin-top: 1px;
+}
+
+.sync-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.sync-toggle input {
+  margin: 0;
+  accent-color: var(--accent);
 }
 
 /* ─── Buttons ─────────────────────────────────────────────── */
@@ -489,6 +515,59 @@ body {
   display: flex;
   gap: 10px;
   flex-shrink: 0;
+}
+
+.doc-output-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.doc-output-card {
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg-subtle);
+  padding: 18px;
+}
+
+.doc-output-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.doc-output-title-row h3 {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.doc-output-card p {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.doc-output-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.dual-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.preview-panel-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
 }
 
 /* ─── Table Editor ────────────────────────────────────────── */
@@ -1120,6 +1199,14 @@ body {
   max-height: 52px;
   max-width: 120px;
   object-fit: contain;
+}
+
+@media (max-width: 960px) {
+  .doc-output-grid,
+  .dual-preview-grid,
+  .template-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ─── Date Picker ─────────────────────────────────────────── */

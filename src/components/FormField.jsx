@@ -11,7 +11,7 @@ export function Field({ label, hint, span, children }) {
   )
 }
 
-export function Input({ value, onChange, placeholder, type = 'text', min, step }) {
+export function Input({ value, onChange, placeholder, type = 'text', min, step, disabled = false }) {
   return (
     <input
       type={type}
@@ -20,6 +20,7 @@ export function Input({ value, onChange, placeholder, type = 'text', min, step }
       placeholder={placeholder}
       min={min}
       step={step}
+      disabled={disabled}
     />
   )
 }
@@ -35,9 +36,9 @@ export function Textarea({ value, onChange, placeholder, rows = 4 }) {
   )
 }
 
-export function Select({ value, onChange, options }) {
+export function Select({ value, onChange, options, disabled = false }) {
   return (
-    <select value={value} onChange={e => onChange(e.target.value)}>
+    <select value={value} onChange={e => onChange(e.target.value)} disabled={disabled}>
       {options.map(opt => (
         <option key={opt.value} value={opt.value}>
           {opt.label}

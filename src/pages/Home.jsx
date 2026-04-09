@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { FileSignature, ArrowRight, ClipboardList, UserCheck } from 'lucide-react'
+import { FileSignature, ArrowRight, ClipboardList } from 'lucide-react'
 
 const templates = [
   {
@@ -13,23 +13,13 @@ const templates = [
     formats: ['PDF', 'DOCX'],
   },
   {
-    to: '/innstilling',
+    to: '/ansettelse',
     icon: ClipboardList,
-    title: 'Innstilling',
+    title: 'Ansettelse',
     description:
-      'Innstilling for undervisningsstilling med kandidat, søkertall og vedtaksinfo.',
+      'Fyll ut ett skjema og generer både innstilling og tilsettingsvedtak som separate filer.',
     color: '#0891b2',
     bg: '#ecfeff',
-    formats: ['PDF', 'DOCX'],
-  },
-  {
-    to: '/tilsettingsvedtak',
-    icon: UserCheck,
-    title: 'Tilsettingsvedtak',
-    description:
-      'Tilsettingsvedtak med intervjuteam, kandidat og tilsettingsperiode.',
-    color: '#16a34a',
-    bg: '#f0fdf4',
     formats: ['PDF', 'DOCX'],
   },
 ]
