@@ -383,7 +383,7 @@ export default function HiringPage() {
         <div className="form-card">
           <div className="form-card-header">
             <User size={15} />
-            <span className="form-card-title">Kandidater</span>
+            <span className="form-card-title">Innstilte kandidater</span>
           </div>
           <div className="candidate-list">
             {form.kandidater.map((candidate, index) => (
