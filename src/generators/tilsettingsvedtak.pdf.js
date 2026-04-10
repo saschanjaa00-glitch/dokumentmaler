@@ -116,7 +116,7 @@ export function generateTilsettingsvedtakPDF(data) {
       },
 
       // Body 1
-      { text: body1, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 10] },
+      { text: body1, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 16] },
 
       // Body 2
       { text: body2, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 6] },
@@ -124,10 +124,11 @@ export function generateTilsettingsvedtakPDF(data) {
       ...candidates.map(candidate => ({
         text: `- ${candidate.navn}: ${candidate.prosent}% ${kandidattype}`,
         fontSize: 12,
-        margin: [24, 2, 0, 4],
+        margin: [24, 2, 0, 8],
       })),
 
       // Tilsetting period
+      { text: '', margin: [0, 12, 0, 0] },
       { text: tilsettingLine, fontSize: 12, margin: [0, 0, 0, 16] },
 
       // Sign-off gap + location/date

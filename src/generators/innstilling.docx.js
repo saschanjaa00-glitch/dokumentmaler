@@ -163,18 +163,18 @@ export async function generateInnstillingDOCX(data) {
         ] : [para([], { after: 120 })]),
 
         // Body 1
-        para([run(body1Lead)], { after: 100, line: 360 }),
+        para([run(body1Lead)], { after: 200, line: 360 }),
         para([run(body1Interview)], { after: 200, line: 360 }),
 
         // Body 2
         para([run(body2)], { after: 160, line: 360 }),
 
         ...candidates.map(candidate => (
-          para([run(`- ${candidate.navn}: ${candidate.prosent}%`)], { before: 80, after: 40, leftIndent: 360 })
+          para([run(`- ${candidate.navn}: ${candidate.prosent}%`)], { before: 80, after: 80, leftIndent: 360 })
         )),
 
         // Boilerplate
-        para([], { after: 120 }),
+        para([], { after: 200 }),
         para([run(`Dersom ${stillingTarget} ikke blir besatt med utgangspunkt i innstillingen, vurderes saken på ny.`)], { after: 120, line: 360 }),
 
         // Vedtak line (optional)

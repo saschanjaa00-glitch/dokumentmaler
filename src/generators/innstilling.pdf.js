@@ -96,7 +96,7 @@ export function generateInnstillingPDF(data) {
       ...(stillingId.trim() ? [{ text: `ID: ${stillingId}`, fontSize: 11, color: C.silver, margin: [0, 0, 0, 14] }] : [{ text: '', margin: [0, 0, 0, 10] }]),
 
       // Body 1
-      { text: body1Lead, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 6] },
+      { text: body1Lead, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 12] },
       { text: body1Interview, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 12] },
 
       // Body 2
@@ -105,11 +105,11 @@ export function generateInnstillingPDF(data) {
       ...candidates.map(candidate => ({
         text: `- ${candidate.navn}: ${candidate.prosent}%`,
         fontSize: 12,
-        margin: [24, 4, 0, 4],
+        margin: [24, 4, 0, 8],
       })),
 
       // Boilerplate blank + text
-      { text: '', margin: [0, 12, 0, 0] },
+      { text: '', margin: [0, 20, 0, 0] },
       { text: `Dersom ${stillingTarget} ikke blir besatt med utgangspunkt i innstillingen, vurderes saken på ny.`, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 8] },
 
       // Vedtak line (optional)

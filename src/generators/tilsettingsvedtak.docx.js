@@ -173,16 +173,17 @@ export async function generateTilsettingsvedtakDOCX(data) {
         para([run(`Tilsetting i ${stillingstittel || '…'}`, { bold: true })], { after: 160 }),
 
         // Body 1
-        para([run(body1)], { after: 160, line: 360 }),
+        para([run(body1)], { after: 240, line: 360 }),
 
         // Body 2
         para([run(body2)], { after: 120, line: 360 }),
 
         ...candidates.map(candidate => (
-          para([run(`- ${candidate.navn}: ${candidate.prosent}% ${kandidattype}`)], { before: 40, after: 20, leftIndent: 360 })
+          para([run(`- ${candidate.navn}: ${candidate.prosent}% ${kandidattype}`)], { before: 40, after: 80, leftIndent: 360 })
         )),
 
         // Tilsetting period
+        para([], { after: 120 }),
         para([run(tilsettingLine)], { after: 160 }),
 
         // Two blank lines before sign-off
