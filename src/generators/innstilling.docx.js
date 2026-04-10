@@ -46,6 +46,12 @@ function run(text, opts = {}) {
 function para(children, opts = {}) {
   return new Paragraph({
     alignment: opts.align || AlignmentType.LEFT,
+    indent: opts.leftIndent || opts.hangingIndent
+      ? {
+          left: opts.leftIndent ?? 0,
+          hanging: opts.hangingIndent ?? 0,
+        }
+      : undefined,
     spacing: {
       before: opts.before ?? 0,
       after:  opts.after  ?? 0,
@@ -121,7 +127,8 @@ export async function generateInnstillingDOCX(data) {
 
   const stillingOrd = flereStillinger ? 'Stillinger' : 'Stilling'
   const stillingTarget = flereStillinger ? 'stillingene' : 'stillingen'
-  const body1 = `${stillingOrd} innen ${fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsFristText}. Det meldte seg ${sokereText} søkere til ${stillingTarget}. ${intervjuText} ${pluralize(interviewCount, 'søker har', 'søkere har')} vært på intervju.`
+  const body1Lead = `${stillingOrd} innen ${fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsFristText}. Det meldte seg ${sokereText} søkere til ${stillingTarget}.`
+  const body1Interview = `${intervjuText} ${pluralize(interviewCount, 'søker har', 'søkere har')} vært på intervju.`
   const body2 = `Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet sett opp mot stillingsutlysningen, har fylkesrådmannen ved rektor ${rektorNavn || '…'} innstilt følgende til ${stillingTarget}:`
   const vedtakLine = vedtaksdato
     ? `Endelig tilsettingsvedtak gjøres av leder ${vedtaksdato}${vedtakstid ? ` – klokka ${vedtakstid}` : ''}`
@@ -143,8 +150,8 @@ export async function generateInnstillingDOCX(data) {
         default: new Footer({ children: footerChildren }),
       },
       children: [
-        // Top spacer — ~3" from top
-        para([], { before: 4320, after: 0 }),
+        // Single line break above the title
+        para([], { after: 120 }),
 
         para([run('INNSTILLING', { bold: true, size: 26 })], { after: 220 }),
 
@@ -156,14 +163,16 @@ export async function generateInnstillingDOCX(data) {
         ] : [para([], { after: 120 })]),
 
         // Body 1
-        para([run(body1)], { after: 200, line: 360 }),
+        para([run(body1Lead)], { after: 100, line: 360 }),
+        para([run(body1Interview)], { after: 200, line: 360 }),
 
         // Body 2
         para([run(body2)], { after: 160, line: 360 }),
 
-        ...candidates.map(candidate => (
-          para([run(`${candidate.navn}: ${candidate.prosent}%`, { bold: true })], { before: 80, after: 40 })
-        )),
+        ...candidates.flatMap(candidate => ([
+          para([run(`- ${candidate.navn}`, { bold: true })], { before: 80, after: 20, leftIndent: 360 }),
+          para([run(`${candidate.prosent}%`)], { after: 40, leftIndent: 720 }),
+        ])),
 
         // Boilerplate
         para([], { after: 120 }),

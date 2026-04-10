@@ -63,13 +63,15 @@ export function generateTilsettingsvedtakPDF(data) {
     : `Tilsettingsvedtak - ${dateStr}.pdf`
 
   // Build team rows for PDF
-  const teamRows = (team.length > 0 ? team : []).flatMap(member => [{
-    columns: [
-      { text: member.navn || '', bold: true, width: '*', fontSize: 12 },
-      { text: member.tittel || '', color: C.silver, width: '*', fontSize: 12 },
+  const teamRows = (team.length > 0 ? team : []).map(member => ({
+    text: [
+      { text: '- ' },
+      { text: member.navn || '', bold: true },
+      ...(member.tittel ? [{ text: ` (${member.tittel})`, color: C.silver }] : []),
     ],
-    margin: [0, 0, 0, 2],
-  }])
+    fontSize: 12,
+    margin: [24, 0, 0, 2],
+  }))
 
   const docDefinition = {
     pageSize: 'A4',
@@ -89,8 +91,8 @@ export function generateTilsettingsvedtakPDF(data) {
     },
 
     content: [
-      // Top spacer ~3"
-      { text: '', margin: [0, 216, 0, 0] },
+      // Single line break above the title
+      { text: '', margin: [0, 0, 0, 12] },
 
       { text: 'TILSETTINGSVEDTAK', fontSize: 14, bold: true, margin: [0, 0, 0, 18] },
 
@@ -119,11 +121,19 @@ export function generateTilsettingsvedtakPDF(data) {
       // Body 2
       { text: body2, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 6] },
 
-      ...candidates.map(candidate => ({
-        text: `- ${candidate.navn}: ${candidate.prosent}% ${kandidattype}`,
-        fontSize: 12,
-        margin: [24, 2, 0, 2],
-      })),
+      ...candidates.flatMap(candidate => ([
+        {
+          text: `- ${candidate.navn}`,
+          fontSize: 12,
+          bold: true,
+          margin: [24, 2, 0, 0],
+        },
+        {
+          text: `${candidate.prosent}% ${kandidattype}`,
+          fontSize: 12,
+          margin: [48, 0, 0, 4],
+        },
+      ])),
 
       // Tilsetting period
       { text: tilsettingLine, fontSize: 12, margin: [0, 0, 0, 16] },

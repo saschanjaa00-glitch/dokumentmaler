@@ -45,6 +45,12 @@ function run(text, opts = {}) {
 function para(children, opts = {}) {
   return new Paragraph({
     alignment: opts.align || AlignmentType.LEFT,
+    indent: opts.leftIndent || opts.hangingIndent
+      ? {
+          left: opts.leftIndent ?? 0,
+          hanging: opts.hangingIndent ?? 0,
+        }
+      : undefined,
     spacing: {
       before: opts.before ?? 0,
       after:  opts.after  ?? 0,
@@ -119,12 +125,13 @@ export async function generateTilsettingsvedtakDOCX(data) {
     : `${pronomen} tilsettes i ${kandidattype} fra og med ${fraDato || '…'}${tilDato ? ` til og med ${tilDato}` : ''}`
 
   // Build team paragraphs
-  const teamParas = (team.length > 0 ? team : []).flatMap(member => [
+  const teamParas = (team.length > 0 ? team : []).map(member => (
     para([
+      run('- '),
       run(member.navn || '', { bold: true }),
-      run(member.tittel ? `  ${member.tittel}` : '', { color: '6B7280' }),
-    ], { after: 40 }),
-  ])
+      run(member.tittel ? ` (${member.tittel})` : '', { color: '6B7280' }),
+    ], { after: 40, leftIndent: 360 })
+  ))
 
   const doc = new Document({
     sections: [{
@@ -142,8 +149,8 @@ export async function generateTilsettingsvedtakDOCX(data) {
         default: new Footer({ children: footerChildren }),
       },
       children: [
-        // Top spacer
-        para([], { before: 4320, after: 0 }),
+        // Single line break above the title
+        para([], { after: 120 }),
 
         para([run('TILSETTINGSVEDTAK', { size: 28, bold: true })], { after: 220 }),
 
@@ -171,9 +178,10 @@ export async function generateTilsettingsvedtakDOCX(data) {
         // Body 2
         para([run(body2)], { after: 120, line: 360 }),
 
-        ...candidates.map(candidate => (
-          para([run(`- ${candidate.navn}: ${candidate.prosent}% ${kandidattype}`)], { before: 40, after: 20 })
-        )),
+        ...candidates.flatMap(candidate => ([
+          para([run(`- ${candidate.navn}`, { bold: true })], { before: 40, after: 20, leftIndent: 360 }),
+          para([run(`${candidate.prosent}% ${kandidattype}`)], { after: 20, leftIndent: 720 }),
+        ])),
 
         // Tilsetting period
         para([run(tilsettingLine)], { after: 160 }),

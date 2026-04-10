@@ -55,7 +55,8 @@ export function generateInnstillingPDF(data) {
   const interviewCount = Number(antallIntervju)
   const stillingOrd = flereStillinger ? 'Stillinger' : 'Stilling'
   const stillingTarget = flereStillinger ? 'stillingene' : 'stillingen'
-  const body1 = `${stillingOrd} innen ${fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsfrist || '…'}. Det meldte seg ${antallSokere || '…'} søkere til ${stillingTarget}. ${antallIntervju || '…'} ${pluralize(interviewCount, 'søker har', 'søkere har')} vært på intervju.`
+  const body1Lead = `${stillingOrd} innen ${fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsfrist || '…'}. Det meldte seg ${antallSokere || '…'} søkere til ${stillingTarget}.`
+  const body1Interview = `${antallIntervju || '…'} ${pluralize(interviewCount, 'søker har', 'søkere har')} vært på intervju.`
   const body2 = `Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet sett opp mot stillingsutlysningen, har fylkesrådmannen ved rektor ${rektorNavn || '…'} innstilt følgende til ${stillingTarget}:`
   const vedtakLine = vedtaksdato
     ? `Endelig tilsettingsvedtak gjøres av leder ${vedtaksdato}${vedtakstid ? ` – klokka ${vedtakstid}` : ''}`
@@ -84,8 +85,8 @@ export function generateInnstillingPDF(data) {
     },
 
     content: [
-      // Top spacer ~3"
-      { text: '', margin: [0, 216, 0, 0] },
+      // Single line break above the title
+      { text: '', margin: [0, 0, 0, 12] },
 
       { text: 'INNSTILLING', fontSize: 14, bold: true, margin: [0, 0, 0, 18] },
 
@@ -95,17 +96,25 @@ export function generateInnstillingPDF(data) {
       ...(stillingId.trim() ? [{ text: `ID: ${stillingId}`, fontSize: 11, color: C.silver, margin: [0, 0, 0, 14] }] : [{ text: '', margin: [0, 0, 0, 10] }]),
 
       // Body 1
-      { text: body1, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 12] },
+      { text: body1Lead, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 6] },
+      { text: body1Interview, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 12] },
 
       // Body 2
       { text: body2, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 8] },
 
-      ...candidates.map(candidate => ({
-        text: `${candidate.navn}: ${candidate.prosent}%`,
-        fontSize: 12,
-        bold: true,
-        margin: [0, 4, 0, 4],
-      })),
+      ...candidates.flatMap(candidate => ([
+        {
+          text: `- ${candidate.navn}`,
+          fontSize: 12,
+          bold: true,
+          margin: [24, 4, 0, 0],
+        },
+        {
+          text: `${candidate.prosent}%`,
+          fontSize: 12,
+          margin: [48, 0, 0, 4],
+        },
+      ])),
 
       // Boilerplate blank + text
       { text: '', margin: [0, 12, 0, 0] },
