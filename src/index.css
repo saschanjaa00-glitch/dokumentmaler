@@ -381,10 +381,54 @@ body {
   margin-top: 1px;
 }
 
+.input-with-suffix {
+  position: relative;
+}
+
+.input-with-suffix input {
+  padding-right: 34px;
+}
+
+.input-suffix {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.candidate-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.candidate-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.candidate-row-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr);
+  gap: 12px;
+}
+
+.candidate-row .btn {
+  align-self: end;
+}
+
 .sync-toggle {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 8px;
+  width: fit-content;
   font-size: var(--text-sm);
   color: var(--text-muted);
   cursor: pointer;
@@ -1207,6 +1251,11 @@ body {
   .doc-output-grid,
   .dual-preview-grid,
   .template-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .candidate-row,
+  .candidate-row-fields {
     grid-template-columns: 1fr;
   }
 }

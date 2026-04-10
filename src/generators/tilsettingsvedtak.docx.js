@@ -54,19 +54,19 @@ function para(children, opts = {}) {
   })
 }
 
-function normalizeCandidates({ kandidater = [], kandidatnavn = '', kandidatprosent = '', prosent = '' }) {
+function normalizeCandidates({ kandidater = [], kandidatnavn = '', kandidatprosent = '' }) {
   const fromArray = kandidater
     .filter(candidate => candidate?.navn || candidate?.prosent)
     .map(candidate => ({
       navn: candidate.navn || '…',
-      prosent: candidate.prosent || prosent || '…',
+      prosent: candidate.prosent || '…',
     }))
 
   if (fromArray.length > 0) return fromArray
 
   return [{
     navn: kandidatnavn || '…',
-    prosent: kandidatprosent || prosent || '…',
+    prosent: kandidatprosent || '…',
   }]
 }
 

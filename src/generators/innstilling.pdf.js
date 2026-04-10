@@ -8,19 +8,19 @@ const C = {
   silver: '#6B7280',
 }
 
-function normalizeCandidates({ kandidater = [], kandidatnavn = '', kandidatprosent = '', prosent = '' }) {
+function normalizeCandidates({ kandidater = [], kandidatnavn = '', kandidatprosent = '' }) {
   const fromArray = kandidater
     .filter(candidate => candidate?.navn || candidate?.prosent)
     .map(candidate => ({
       navn: candidate.navn || '…',
-      prosent: candidate.prosent || prosent || '…',
+      prosent: candidate.prosent || '…',
     }))
 
   if (fromArray.length > 0) return fromArray
 
   return [{
     navn: kandidatnavn || '…',
-    prosent: kandidatprosent || prosent || '…',
+    prosent: kandidatprosent || '…',
   }]
 }
 
@@ -34,7 +34,6 @@ export function generateInnstillingPDF(data) {
     stillingstittel = '',
     fagomrade       = '',
     flereStillinger = false,
-    prosent         = '',
     stillingstype   = 'vikariat',
     stillingId      = '',
     soeknadsfrist   = '',
@@ -51,7 +50,7 @@ export function generateInnstillingPDF(data) {
     logo            = null,
   } = data
 
-  const candidates = normalizeCandidates({ ...data, prosent })
+  const candidates = normalizeCandidates(data)
   const candidateCount = candidates.length
   const interviewCount = Number(antallIntervju)
   const stillingOrd = flereStillinger ? 'Stillinger' : 'Stilling'

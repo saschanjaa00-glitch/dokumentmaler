@@ -70,7 +70,6 @@ function createDefaultState() {
     stillingstittel: '',
     fagomrade: '',
     flereStillinger: false,
-    prosent: '',
     stillingstype: 'vikariat',
     stillingId: '',
     soeknadsfrist: '',
@@ -78,14 +77,14 @@ function createDefaultState() {
     antallIntervju: '',
     rektorNavn: '',
     kandidater: createDefaultCandidates(),
-    vedtaksdato: '',
+    innstillingsdato: '',
+    tilsettingsdato: '',
     vedtakstid: '',
     kandidattype: 'vikariat',
     syncKandidattype: true,
     pronomen: 'Han',
     fraDato: '',
     tilDato: '',
-    utstedelsesdato: '',
     signaturnavn: '',
     signaturttittel: 'Rektor',
     customTitle: '',
@@ -108,6 +107,8 @@ function load(key, fallback) {
     return {
       ...fallback,
       ...parsed,
+      innstillingsdato: parsed.innstillingsdato ?? parsed.utstedelsesdato ?? '',
+      tilsettingsdato: parsed.tilsettingsdato ?? parsed.vedtaksdato ?? parsed.utstedelsesdato ?? '',
       kandidater: restoredCandidates,
       team: Array.isArray(parsed.team) && parsed.team.length > 0 ? parsed.team : fallback.team,
     }
@@ -131,6 +132,18 @@ function pluralize(count, singular, plural) {
 
 function formatPercent(value, fallback = '…') {
   return value ? `${value}%` : fallback
+}
+
+function sanitizePercentInput(value) {
+  const cleaned = value.replace(/[^\d.,]/g, '')
+  const firstSeparatorIndex = cleaned.search(/[.,]/)
+
+  if (firstSeparatorIndex === -1) return cleaned
+
+  const whole = cleaned.slice(0, firstSeparatorIndex)
+  const separator = cleaned[firstSeparatorIndex]
+  const decimals = cleaned.slice(firstSeparatorIndex + 1).replace(/[.,]/g, '')
+  return `${whole}${separator}${decimals}`
 }
 
 export default function HiringPage() {
@@ -201,9 +214,9 @@ export default function HiringPage() {
   const candidatesForDocuments = activeCandidates.length > 0
     ? activeCandidates.map(candidate => ({
         navn: candidate.navn.trim(),
-        prosent: candidate.prosent.trim() || form.prosent,
+        prosent: candidate.prosent.trim(),
       }))
-    : [{ navn: '', prosent: form.prosent }]
+    : [{ navn: '', prosent: '' }]
   const activeTeam = form.team.filter(member => member.navn.trim() || member.tittel.trim())
   const hasMultipleCandidates = activeCandidates.length > 1
   const stillingOrd = form.flereStillinger ? 'Stillinger' : 'Stilling'
@@ -214,7 +227,6 @@ export default function HiringPage() {
     stillingstittel: form.stillingstittel,
     fagomrade: form.fagomrade,
     flereStillinger: form.flereStillinger,
-    prosent: form.prosent,
     stillingstype: form.stillingstype,
     stillingId: form.stillingId,
     soeknadsfrist: form.soeknadsfrist,
@@ -222,9 +234,9 @@ export default function HiringPage() {
     antallIntervju: form.antallIntervju,
     rektorNavn: form.rektorNavn,
     kandidater: candidatesForDocuments,
-    vedtaksdato: form.vedtaksdato,
+    vedtaksdato: form.tilsettingsdato,
     vedtakstid: form.vedtakstid,
-    utstedelsesdato: form.utstedelsesdato,
+    utstedelsesdato: form.innstillingsdato,
     signaturnavn: form.signaturnavn,
     signaturttittel: resolvedTitle,
     logo,
@@ -244,7 +256,7 @@ export default function HiringPage() {
     pronomen: form.pronomen,
     fraDato: form.fraDato,
     tilDato: form.tilDato,
-    utstedelsesdato: form.utstedelsesdato,
+    utstedelsesdato: form.tilsettingsdato,
     signaturnavn: form.signaturnavn,
     signaturttittel: resolvedTitle,
     team: activeTeam,
@@ -260,8 +272,8 @@ export default function HiringPage() {
   const interviewCount = Number(form.antallIntervju)
   const innstillingBody1 = `${stillingOrd} innen ${form.fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${form.soeknadsfrist || '…'}. Det meldte seg ${form.antallSokere || '…'} søkere til ${stillingTarget}. ${form.antallIntervju || '…'} ${pluralize(interviewCount, 'søker har', 'søkere har')} vært på intervju.`
   const innstillingBody2 = `Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet sett opp mot stillingsutlysningen, har fylkesrådmannen ved rektor ${form.rektorNavn || '…'} innstilt følgende til ${stillingTarget}:`
-  const vedtakPreview = form.vedtaksdato
-    ? `Endelig tilsettingsvedtak gjøres av leder ${form.vedtaksdato}${form.vedtakstid ? ` – klokka ${form.vedtakstid}` : ''}`
+  const vedtakPreview = form.tilsettingsdato
+    ? `Endelig tilsettingsvedtak gjøres av leder ${form.tilsettingsdato}${form.vedtakstid ? ` – klokka ${form.vedtakstid}` : ''}`
     : ''
   const tilsettingsBody1 = `${stillingOrd} innen ${form.fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${form.soeknadsfrist || '…'}. Det meldte seg ${form.antallSokere || '…'} søkere til ${stillingTarget}.`
   const tilsettingsBody2 = 'Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet tilsettes:'
@@ -314,13 +326,10 @@ export default function HiringPage() {
                 label="Flere stillinger"
               />
             </Field>
-            <Field label="Stillingsandel (%)">
-              <Input value={form.prosent} onChange={value => set('prosent', value)} placeholder="75" />
-            </Field>
             <Field label="Stillingstype">
               <Select value={form.stillingstype} onChange={value => set('stillingstype', value)} options={STILLINGSTYPE_OPTIONS} />
             </Field>
-            <Field label="Stilling-ID (valgfritt)">
+            <Field label="Stillings-ID">
               <Input value={form.stillingId} onChange={value => set('stillingId', value)} placeholder="32131231" />
             </Field>
             <Field label="Søknadsfrist">
@@ -340,22 +349,29 @@ export default function HiringPage() {
             <User size={15} />
             <span className="form-card-title">Kandidater</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="candidate-list">
             {form.kandidater.map((candidate, index) => (
-              <div key={index} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <div style={{ flex: 2 }}>
-                  <Input
-                    value={candidate.navn}
-                    onChange={value => setCandidate(index, 'navn', value)}
-                    placeholder="Kandidatnavn"
-                  />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Input
-                    value={candidate.prosent}
-                    onChange={value => setCandidate(index, 'prosent', value)}
-                    placeholder={form.prosent || 'Prosent'}
-                  />
+              <div key={index} className="candidate-row">
+                <div className="candidate-row-fields">
+                  <Field label="Kandidatnavn">
+                    <Input
+                      value={candidate.navn}
+                      onChange={value => setCandidate(index, 'navn', value)}
+                      placeholder="Stine P"
+                    />
+                  </Field>
+                  <Field label="Stillingsprosent">
+                    <div className="input-with-suffix">
+                      <Input
+                        value={candidate.prosent}
+                        onChange={value => setCandidate(index, 'prosent', sanitizePercentInput(value))}
+                        placeholder="55"
+                        inputMode="decimal"
+                        maxLength={6}
+                      />
+                      <span className="input-suffix">%</span>
+                    </div>
+                  </Field>
                 </div>
                 {form.kandidater.length > 1 && (
                   <button
@@ -382,7 +398,7 @@ export default function HiringPage() {
         <div className="form-card">
           <div className="form-card-header">
             <UserCheck size={15} />
-            <span className="form-card-title">Tilsettingsinfo</span>
+            <span className="form-card-title">Tilsettings- og innstillingsinfo</span>
           </div>
           <div className="form-grid">
             <Field label="Rektors navn (som innstiller)" hint="Brukes i innstilling.">
@@ -414,17 +430,11 @@ export default function HiringPage() {
             <Field label="Til dato (valgfritt)" hint="Brukes i tilsettingsvedtak.">
               <DatePicker value={form.tilDato} onChange={value => set('tilDato', value)} clearable />
             </Field>
-          </div>
-        </div>
-
-        <div className="form-card">
-          <div className="form-card-header">
-            <FileText size={15} />
-            <span className="form-card-title">Innstilling-spesifikt</span>
-          </div>
-          <div className="form-grid">
-            <Field label="Vedtaksdato">
-              <DatePicker value={form.vedtaksdato} onChange={value => set('vedtaksdato', value)} clearable />
+            <Field label="Dato for innstilling" hint="Brukes som signaturdato i innstilling.">
+              <DatePicker value={form.innstillingsdato} onChange={value => set('innstillingsdato', value)} />
+            </Field>
+            <Field label="Dato for tilsetting" hint="Brukes som signaturdato i tilsettingsvedtak og vedtaksdato i innstilling.">
+              <DatePicker value={form.tilsettingsdato} onChange={value => set('tilsettingsdato', value)} />
             </Field>
             <Field label="Klokkeslett">
               <Input value={form.vedtakstid} onChange={value => set('vedtakstid', value)} placeholder="15:00" />
@@ -482,9 +492,6 @@ export default function HiringPage() {
             <span className="form-card-title">Signering</span>
           </div>
           <div className="form-grid">
-            <Field label="Dato (nederst i dokumentet)">
-              <DatePicker value={form.utstedelsesdato} onChange={value => set('utstedelsesdato', value)} />
-            </Field>
             <Field label="Signaturnavn">
               <Input value={form.signaturnavn} onChange={value => set('signaturnavn', value)} placeholder="Sascha Njaa Tjelta" />
             </Field>
@@ -557,16 +564,16 @@ export default function HiringPage() {
                 <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>ID: {form.stillingId || <span className="fp-placeholder">ID</span>}</p>
                 <p className="fp-body" style={{ marginBottom: 18 }}>{innstillingBody1}</p>
                 <p className="fp-body" style={{ marginBottom: 18 }}>{innstillingBody2}</p>
-                {(activeCandidates.length > 0 ? activeCandidates : [{ navn: '', prosent: form.prosent }]).map((candidate, index) => (
+                {(activeCandidates.length > 0 ? activeCandidates : [{ navn: '', prosent: '' }]).map((candidate, index) => (
                   <p className="fp-signer" style={{ marginTop: index === 0 ? 0 : 8 }} key={index}>
-                    {candidate.navn || <span className="fp-placeholder">Kandidatnavn</span>}: {formatPercent(candidate.prosent || form.prosent)}
+                    {candidate.navn || <span className="fp-placeholder">Kandidatnavn</span>}: {formatPercent(candidate.prosent)}
                   </p>
                 ))}
                 <p className="fp-body" style={{ marginTop: 28, marginBottom: 18 }}>
                   Dersom {stillingTarget} ikke blir besatt med utgangspunkt i innstillingen, vurderes saken på ny.
                 </p>
                 {vedtakPreview && <p className="fp-body" style={{ marginBottom: 18 }}>{vedtakPreview}</p>}
-                <p className="fp-school">{form.skolenavn || <span className="fp-placeholder">Skolens navn</span>}, {form.utstedelsesdato || <span className="fp-placeholder">dato</span>}</p>
+                <p className="fp-school">{form.skolenavn || <span className="fp-placeholder">Skolens navn</span>}, {form.innstillingsdato || <span className="fp-placeholder">dato</span>}</p>
                 <p className="fp-signer">{form.signaturnavn || <span className="fp-placeholder">Navn</span>}</p>
                 <p className="fp-title-text">{resolvedTitle || <span className="fp-placeholder">Tittel</span>}</p>
                 {logo && <div className="fp-logo"><img src={logo} alt="Logo" /></div>}
@@ -594,13 +601,13 @@ export default function HiringPage() {
                 </p>
                 <p className="fp-body" style={{ marginBottom: 12 }}>{tilsettingsBody1}</p>
                 <p className="fp-body" style={{ marginBottom: 10 }}>{tilsettingsBody2}</p>
-                {(activeCandidates.length > 0 ? activeCandidates : [{ navn: '', prosent: form.prosent }]).map((candidate, index) => (
+                {(activeCandidates.length > 0 ? activeCandidates : [{ navn: '', prosent: '' }]).map((candidate, index) => (
                   <p key={index} style={{ fontSize: 13.5, margin: '0 0 6px 24px' }}>
-                    - {candidate.navn || <span className="fp-placeholder">Kandidatnavn</span>}: {formatPercent(candidate.prosent || form.prosent)} {resolvedKandidattype}
+                    - {candidate.navn || <span className="fp-placeholder">Kandidatnavn</span>}: {formatPercent(candidate.prosent)} {resolvedKandidattype}
                   </p>
                 ))}
                 <p className="fp-body" style={{ marginTop: 22, marginBottom: 18 }}>{tilsettingPreview}</p>
-                <p className="fp-school">{form.skolenavn || <span className="fp-placeholder">Skolens navn</span>}, {form.utstedelsesdato || <span className="fp-placeholder">dato</span>}</p>
+                <p className="fp-school">{form.skolenavn || <span className="fp-placeholder">Skolens navn</span>}, {form.tilsettingsdato || <span className="fp-placeholder">dato</span>}</p>
                 <p className="fp-signer">{form.signaturnavn || <span className="fp-placeholder">Navn</span>}</p>
                 <p className="fp-title-text">{resolvedTitle || <span className="fp-placeholder">Tittel</span>}</p>
                 {logo && <div className="fp-logo"><img src={logo} alt="Logo" /></div>}

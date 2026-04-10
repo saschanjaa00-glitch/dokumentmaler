@@ -11,7 +11,7 @@ export function Field({ label, hint, span, children }) {
   )
 }
 
-export function Input({ value, onChange, placeholder, type = 'text', min, step, disabled = false }) {
+export function Input({ value, onChange, placeholder, type = 'text', min, step, disabled = false, inputMode, maxLength }) {
   return (
     <input
       type={type}
@@ -21,6 +21,8 @@ export function Input({ value, onChange, placeholder, type = 'text', min, step, 
       min={min}
       step={step}
       disabled={disabled}
+      inputMode={inputMode}
+      maxLength={maxLength}
     />
   )
 }
