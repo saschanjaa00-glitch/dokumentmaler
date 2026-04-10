@@ -28,15 +28,15 @@ export default function Home() {
   return (
     <div className="home-page">
       <div className="home-welcome">
-        <h2>Create a document</h2>
+        <h2>Velg en dokumentmal</h2>
         <p>
-          Choose a template below, fill in your details, and generate a
-          professionally designed PDF or Word document instantly.
+          Velg en mal nedenfor, fyll inn opplysningene dine, og generer et
+          ferdig dokument i PDF- eller Word-format på få sekunder.
         </p>
       </div>
 
       <div className="home-body">
-        <div className="home-section-label">Templates</div>
+        <div className="home-section-label">Maler</div>
         <div className="template-grid">
           {templates.map(({ to, icon: Icon, title, description, color, bg, formats }) => (
             <Link key={to} to={to} className="template-card">
@@ -62,7 +62,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="template-card-footer" style={{ color }}>
-                Open template
+                Bruk mal
                 <ArrowRight />
               </div>
             </Link>

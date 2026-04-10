@@ -42,7 +42,7 @@ export default function LogoUpload({ value, onChange }) {
     if (!file) return
     // pdfmake and docx ImageRun only support raster formats
     if (!['image/png', 'image/jpeg', 'image/jpg', 'image/gif'].includes(file.type)) {
-      alert('Please upload a PNG, JPG, or GIF image.')
+      alert('Last opp et PNG-, JPG- eller GIF-bilde.')
       return
     }
     setSelectedPreset('')
@@ -81,20 +81,20 @@ export default function LogoUpload({ value, onChange }) {
   return (
     <div className="logo-upload-stack">
       <div className="logo-preset-row">
-        <label className="logo-preset-label" htmlFor="preset-logo-select">Velg eksisterende logo</label>
+        <label className="logo-preset-label" htmlFor="preset-logo-select">Velg logo fra listen</label>
         <select
           id="preset-logo-select"
           className="logo-preset-select"
           value={selectedPreset}
           onChange={(e) => handlePresetChange(e.target.value)}
         >
-          <option value="">Ingen valgt</option>
+          <option value="">Ingen logo valgt</option>
           {presetLogos.map(preset => (
             <option key={preset.id} value={preset.id}>{preset.label}</option>
           ))}
         </select>
         {presetLogos.length === 0 && (
-          <span className="logo-preset-empty">Legg PNG-filer i src/assets/logos for å få dem i listen.</span>
+          <span className="logo-preset-empty">Legg PNG-filer i src/assets/logos for å gjøre dem tilgjengelige her.</span>
         )}
       </div>
 
@@ -106,8 +106,8 @@ export default function LogoUpload({ value, onChange }) {
         onDrop={onDrop}
       >
         <Upload size={17} />
-        <span>Click or drag to upload</span>
-        <span className="logo-hint">PNG · JPG · GIF — transparent bg recommended</span>
+        <span>Klikk for å laste opp, eller dra filen hit</span>
+        <span className="logo-hint">PNG · JPG · GIF - helst med gjennomsiktig bakgrunn</span>
         <input
           ref={inputRef}
           type="file"
@@ -127,7 +127,7 @@ export default function LogoUpload({ value, onChange }) {
               onChange(null)
             }}
             type="button"
-            title="Remove logo"
+            title="Fjern logo"
           >
             <X size={12} />
           </button>

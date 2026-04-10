@@ -5,7 +5,7 @@ const navItems = [
   {
     to: '/',
     icon: Home,
-    label: 'Home',
+    label: 'Hjem',
     end: true,
   },
   {
@@ -34,11 +34,11 @@ export default function Sidebar() {
             <h1>Maler</h1>
           </div>
         </div>
-        <p style={{ marginTop: 8 }}>Document Generator</p>
+        <p style={{ marginTop: 8 }}>Maler for dokumenter</p>
       </div>
 
       <nav className="sidebar-nav">
-        <div className="nav-group-label">Templates</div>
+        <div className="nav-group-label">Maler</div>
         {navItems.map(({ to, icon: Icon, label, end, formats }) => (
           <NavLink
             key={to}

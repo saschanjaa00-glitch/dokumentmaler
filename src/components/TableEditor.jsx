@@ -2,9 +2,9 @@ import { Plus, X } from 'lucide-react'
 
 export default function TableEditor({ items, onChange, columns, currency = '' }) {
   const cols = columns || [
-    { key: 'description', label: 'Description', type: 'text', flex: true },
-    { key: 'quantity', label: 'Qty', type: 'number', width: 70, align: 'center' },
-    { key: 'unitPrice', label: 'Unit Price', type: 'number', width: 110, align: 'right' },
+    { key: 'description', label: 'Beskrivelse', type: 'text', flex: true },
+    { key: 'quantity', label: 'Antall', type: 'number', width: 70, align: 'center' },
+    { key: 'unitPrice', label: 'Enhetspris', type: 'number', width: 110, align: 'right' },
   ]
 
   const hasAmount = !columns
@@ -35,7 +35,7 @@ export default function TableEditor({ items, onChange, columns, currency = '' })
   const fmt = (n) => {
     const num = parseFloat(n) || 0
     return currency
-      ? new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(num)
+      ? new Intl.NumberFormat('nb-NO', { style: 'currency', currency }).format(num)
       : num.toFixed(2)
   }
 
@@ -53,7 +53,7 @@ export default function TableEditor({ items, onChange, columns, currency = '' })
                 {col.label}
               </th>
             ))}
-            {hasAmount && <th className="align-right">Amount</th>}
+            {hasAmount && <th className="align-right">Sum</th>}
             <th style={{ width: 40 }}></th>
           </tr>
         </thead>
@@ -88,7 +88,7 @@ export default function TableEditor({ items, onChange, columns, currency = '' })
                 <button
                   className="btn-icon"
                   onClick={() => removeRow(item.id)}
-                  title="Remove row"
+                  title="Fjern rad"
                   type="button"
                 >
                   <X size={13} />
@@ -101,11 +101,11 @@ export default function TableEditor({ items, onChange, columns, currency = '' })
       <div className="table-footer">
         <button className="add-row-btn" onClick={addRow} type="button">
           <Plus size={14} />
-          Add row
+          Legg til rad
         </button>
         {hasAmount && subtotal !== null && (
           <span className="subtotal-display">
-            Subtotal: <strong>{fmt(subtotal)}</strong>
+            Delsum: <strong>{fmt(subtotal)}</strong>
           </span>
         )}
       </div>
