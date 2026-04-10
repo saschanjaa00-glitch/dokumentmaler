@@ -30,6 +30,7 @@ export function generateTilsettingsvedtakPDF(data) {
     stillingstittel = '',
     stillingId      = '',
     fagomrade       = '',
+    flereStillinger = false,
     stillingstype   = 'vikariat',
     soeknadsfrist   = '',
     antallSokere    = '',
@@ -48,7 +49,9 @@ export function generateTilsettingsvedtakPDF(data) {
 
   const candidates = normalizeCandidates({ ...data })
   const candidateCount = candidates.length
-  const body1 = `Stilling innen ${fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsfrist || '…'}. Det meldte seg ${antallSokere || '…'} søkere til ${candidateCount > 1 ? 'stillingene' : 'stillingen'}.`
+  const stillingOrd = flereStillinger ? 'Stillinger' : 'Stilling'
+  const stillingTarget = flereStillinger ? 'stillingene' : 'stillingen'
+  const body1 = `${stillingOrd} innen ${fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsfrist || '…'}. Det meldte seg ${antallSokere || '…'} søkere til ${stillingTarget}.`
   const body2 = 'Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlig egnethet tilsettes:'
   const tilsettingLine = candidateCount > 1
     ? `Kandidatene tilsettes i ${kandidattype} fra og med ${fraDato || '…'}${tilDato ? ` til og med ${tilDato}` : ''}`

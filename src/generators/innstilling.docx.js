@@ -80,7 +80,7 @@ export async function generateInnstillingDOCX(data) {
     skolenavn       = '',
     stillingstittel = '',
     fagomrade       = '',
-    fagene          = '',
+    flereStillinger = false,
     prosent         = '',
     stillingstype   = 'vikariat',
     stillingId      = '',
@@ -120,8 +120,10 @@ export async function generateInnstillingDOCX(data) {
   const sokereText = antallSokere ? antallSokere : '…'
   const intervjuText = antallIntervju ? antallIntervju : '…'
 
-  const body1 = `Stilling innen fagene ${fagene || fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsFristText}. Det meldte seg ${sokereText} søkere til ${candidateCount > 1 ? 'stillingene' : 'stillingen'}. ${intervjuText} ${pluralize(interviewCount, 'søker har', 'søkere har')} vært på intervju.`
-  const body2 = `Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet sett opp mot stillingsutlysningen, har fylkesrådmannen ved rektor ${rektorNavn || '…'} innstilt følgende til ${candidateCount > 1 ? 'stillingene' : 'stillingen'}:`
+  const stillingOrd = flereStillinger ? 'Stillinger' : 'Stilling'
+  const stillingTarget = flereStillinger ? 'stillingene' : 'stillingen'
+  const body1 = `${stillingOrd} innen ${fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsFristText}. Det meldte seg ${sokereText} søkere til ${stillingTarget}. ${intervjuText} ${pluralize(interviewCount, 'søker har', 'søkere har')} vært på intervju.`
+  const body2 = `Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet sett opp mot stillingsutlysningen, har fylkesrådmannen ved rektor ${rektorNavn || '…'} innstilt følgende til ${stillingTarget}:`
   const vedtakLine = vedtaksdato
     ? `Endelig tilsettingsvedtak gjøres av leder ${vedtaksdato}${vedtakstid ? ` – klokka ${vedtakstid}` : ''}`
     : ''
@@ -166,7 +168,7 @@ export async function generateInnstillingDOCX(data) {
 
         // Boilerplate
         para([], { after: 120 }),
-        para([run(`Dersom ${candidateCount > 1 ? 'stillingene' : 'stillingen'} ikke blir besatt med utgangspunkt i innstillingen, vurderes saken på ny.`)], { after: 120, line: 360 }),
+        para([run(`Dersom ${stillingTarget} ikke blir besatt med utgangspunkt i innstillingen, vurderes saken på ny.`)], { after: 120, line: 360 }),
 
         // Vedtak line (optional)
         ...(vedtakLine ? [para([run(vedtakLine)], { after: 200 })] : []),

@@ -33,7 +33,7 @@ export function generateInnstillingPDF(data) {
     skolenavn       = '',
     stillingstittel = '',
     fagomrade       = '',
-    fagene          = '',
+    flereStillinger = false,
     prosent         = '',
     stillingstype   = 'vikariat',
     stillingId      = '',
@@ -54,8 +54,10 @@ export function generateInnstillingPDF(data) {
   const candidates = normalizeCandidates({ ...data, prosent })
   const candidateCount = candidates.length
   const interviewCount = Number(antallIntervju)
-  const body1 = `Stilling innen fagene ${fagene || fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsfrist || '…'}. Det meldte seg ${antallSokere || '…'} søkere til ${candidateCount > 1 ? 'stillingene' : 'stillingen'}. ${antallIntervju || '…'} ${pluralize(interviewCount, 'søker har', 'søkere har')} vært på intervju.`
-  const body2 = `Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet sett opp mot stillingsutlysningen, har fylkesrådmannen ved rektor ${rektorNavn || '…'} innstilt følgende til ${candidateCount > 1 ? 'stillingene' : 'stillingen'}:`
+  const stillingOrd = flereStillinger ? 'Stillinger' : 'Stilling'
+  const stillingTarget = flereStillinger ? 'stillingene' : 'stillingen'
+  const body1 = `${stillingOrd} innen ${fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${soeknadsfrist || '…'}. Det meldte seg ${antallSokere || '…'} søkere til ${stillingTarget}. ${antallIntervju || '…'} ${pluralize(interviewCount, 'søker har', 'søkere har')} vært på intervju.`
+  const body2 = `Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet sett opp mot stillingsutlysningen, har fylkesrådmannen ved rektor ${rektorNavn || '…'} innstilt følgende til ${stillingTarget}:`
   const vedtakLine = vedtaksdato
     ? `Endelig tilsettingsvedtak gjøres av leder ${vedtaksdato}${vedtakstid ? ` – klokka ${vedtakstid}` : ''}`
     : null
@@ -108,7 +110,7 @@ export function generateInnstillingPDF(data) {
 
       // Boilerplate blank + text
       { text: '', margin: [0, 12, 0, 0] },
-      { text: `Dersom ${candidateCount > 1 ? 'stillingene' : 'stillingen'} ikke blir besatt med utgangspunkt i innstillingen, vurderes saken på ny.`, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 8] },
+      { text: `Dersom ${stillingTarget} ikke blir besatt med utgangspunkt i innstillingen, vurderes saken på ny.`, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 8] },
 
       // Vedtak line (optional)
       ...(vedtakLine ? [{ text: vedtakLine, fontSize: 12, margin: [0, 0, 0, 16] }] : []),

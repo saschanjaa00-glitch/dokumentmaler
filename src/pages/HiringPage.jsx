@@ -69,7 +69,7 @@ function createDefaultState() {
     skolenavn: '',
     stillingstittel: '',
     fagomrade: '',
-    fagene: '',
+    flereStillinger: false,
     prosent: '',
     stillingstype: 'vikariat',
     stillingId: '',
@@ -85,7 +85,6 @@ function createDefaultState() {
     pronomen: 'Han',
     fraDato: '',
     tilDato: '',
-    syncFagene: true,
     utstedelsesdato: '',
     signaturnavn: '',
     signaturttittel: 'Rektor',
@@ -197,7 +196,6 @@ export default function HiringPage() {
   }
 
   const resolvedTitle = form.signaturttittel === 'andre' ? form.customTitle : form.signaturttittel
-  const resolvedFagene = form.syncFagene ? form.fagomrade : form.fagene
   const resolvedKandidattype = form.syncKandidattype ? form.stillingstype : form.kandidattype
   const activeCandidates = form.kandidater.filter(candidate => candidate.navn.trim() || candidate.prosent.trim())
   const candidatesForDocuments = activeCandidates.length > 0
@@ -208,13 +206,14 @@ export default function HiringPage() {
     : [{ navn: '', prosent: form.prosent }]
   const activeTeam = form.team.filter(member => member.navn.trim() || member.tittel.trim())
   const hasMultipleCandidates = activeCandidates.length > 1
-  const candidateCount = activeCandidates.length || 1
+  const stillingOrd = form.flereStillinger ? 'Stillinger' : 'Stilling'
+  const stillingTarget = form.flereStillinger ? 'stillingene' : 'stillingen'
 
   const innstillingData = {
     skolenavn: form.skolenavn,
     stillingstittel: form.stillingstittel,
     fagomrade: form.fagomrade,
-    fagene: resolvedFagene,
+    flereStillinger: form.flereStillinger,
     prosent: form.prosent,
     stillingstype: form.stillingstype,
     stillingId: form.stillingId,
@@ -236,6 +235,7 @@ export default function HiringPage() {
     stillingstittel: form.stillingstittel,
     stillingId: form.stillingId,
     fagomrade: form.fagomrade,
+    flereStillinger: form.flereStillinger,
     stillingstype: form.stillingstype,
     soeknadsfrist: form.soeknadsfrist,
     antallSokere: form.antallSokere,
@@ -258,12 +258,12 @@ export default function HiringPage() {
   })
 
   const interviewCount = Number(form.antallIntervju)
-  const innstillingBody1 = `Stilling innen fagene ${resolvedFagene || '…'} har vært lyst ledig eksternt med søknadsfrist ${form.soeknadsfrist || '…'}. Det meldte seg ${form.antallSokere || '…'} søkere til ${hasMultipleCandidates ? 'stillingene' : 'stillingen'}. ${form.antallIntervju || '…'} ${pluralize(interviewCount, 'søker har', 'søkere har')} vært på intervju.`
-  const innstillingBody2 = `Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet sett opp mot stillingsutlysningen, har fylkesrådmannen ved rektor ${form.rektorNavn || '…'} innstilt følgende til ${hasMultipleCandidates ? 'stillingene' : 'stillingen'}:`
+  const innstillingBody1 = `${stillingOrd} innen ${form.fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${form.soeknadsfrist || '…'}. Det meldte seg ${form.antallSokere || '…'} søkere til ${stillingTarget}. ${form.antallIntervju || '…'} ${pluralize(interviewCount, 'søker har', 'søkere har')} vært på intervju.`
+  const innstillingBody2 = `Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet sett opp mot stillingsutlysningen, har fylkesrådmannen ved rektor ${form.rektorNavn || '…'} innstilt følgende til ${stillingTarget}:`
   const vedtakPreview = form.vedtaksdato
     ? `Endelig tilsettingsvedtak gjøres av leder ${form.vedtaksdato}${form.vedtakstid ? ` – klokka ${form.vedtakstid}` : ''}`
     : ''
-  const tilsettingsBody1 = `Stilling innen ${form.fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${form.soeknadsfrist || '…'}. Det meldte seg ${form.antallSokere || '…'} søkere til ${hasMultipleCandidates ? 'stillingene' : 'stillingen'}.`
+  const tilsettingsBody1 = `${stillingOrd} innen ${form.fagomrade || '…'} har vært lyst ledig eksternt med søknadsfrist ${form.soeknadsfrist || '…'}. Det meldte seg ${form.antallSokere || '…'} søkere til ${stillingTarget}.`
   const tilsettingsBody2 = 'Etter en samlet vurdering av søkernes utdanning, faglige kompetanse, erfaring og personlige egnethet tilsettes:'
   const tilsettingPreview = hasMultipleCandidates
     ? `Kandidatene tilsettes i ${resolvedKandidattype} fra og med ${form.fraDato || '…'}${form.tilDato ? ` til og med ${form.tilDato}` : ''}`
@@ -304,22 +304,14 @@ export default function HiringPage() {
             <Field label="Stillingstittel (fra Jobbnorge e.l.)" span="full">
               <Input value={form.stillingstittel} onChange={value => set('stillingstittel', value)} placeholder="Undervisningsstilling i realfag" />
             </Field>
-            <Field label="Fagområde" span="full">
+            <Field label="Fag eller fagområde" span="full">
               <Input value={form.fagomrade} onChange={value => set('fagomrade', value)} placeholder="Realfag" />
-            </Field>
-            <Field label="Fagene i stillingen" span="full" hint="Brukes i innstilling.">
-              <Input
-                value={form.syncFagene ? form.fagomrade : form.fagene}
-                onChange={value => set('fagene', value)}
-                placeholder="matematikk, naturfag, kjemi og/eller geofag"
-                disabled={form.syncFagene}
-              />
             </Field>
             <Field span="full">
               <SyncToggle
-                checked={form.syncFagene}
-                onChange={checked => set('syncFagene', checked)}
-                label="Bruk fagområde også som fagliste i innstillingen"
+                checked={form.flereStillinger}
+                onChange={checked => set('flereStillinger', checked)}
+                label="Flere stillinger"
               />
             </Field>
             <Field label="Stillingsandel (%)">
@@ -571,7 +563,7 @@ export default function HiringPage() {
                   </p>
                 ))}
                 <p className="fp-body" style={{ marginTop: 28, marginBottom: 18 }}>
-                  Dersom {hasMultipleCandidates ? 'stillingene' : 'stillingen'} ikke blir besatt med utgangspunkt i innstillingen, vurderes saken på ny.
+                  Dersom {stillingTarget} ikke blir besatt med utgangspunkt i innstillingen, vurderes saken på ny.
                 </p>
                 {vedtakPreview && <p className="fp-body" style={{ marginBottom: 18 }}>{vedtakPreview}</p>}
                 <p className="fp-school">{form.skolenavn || <span className="fp-placeholder">Skolens navn</span>}, {form.utstedelsesdato || <span className="fp-placeholder">dato</span>}</p>
