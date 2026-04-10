@@ -5,7 +5,6 @@ import {
   Download,
   Eye,
   FileDown,
-  FileText,
   Plus,
   School,
   Trash2,
@@ -29,17 +28,23 @@ const STILLINGSTYPE_OPTIONS = [
   { value: 'tilkallingsvikar', label: 'Tilkallingsvikar' },
 ]
 
-const KANDIDATTYPE_OPTIONS = [
-  { value: 'vikariat', label: 'Vikariat' },
-  { value: 'fast stilling', label: 'Fast stilling' },
-  { value: 'tilkallingsvikar', label: 'Tilkallingsvikar' },
-]
-
 const PRONOMEN_OPTIONS = [
   { value: 'Han', label: 'Han' },
   { value: 'Hun', label: 'Hun' },
   { value: 'De', label: 'De' },
   { value: 'Hen', label: 'Hen' },
+]
+
+const TEAM_ROLE_OPTIONS = [
+  { value: '', label: 'Velg rolle' },
+  { value: 'Rektor', label: 'Rektor' },
+  { value: 'Avdelingsleder', label: 'Avdelingsleder' },
+  { value: 'Tillitsvalgt (Utdanningsforbundet)', label: 'Tillitsvalgt (Utdanningsforbundet)' },
+  { value: 'Tillitsvalgt (Norsk Lektorlag)', label: 'Tillitsvalgt (Norsk Lektorlag)' },
+  { value: 'Konstituert rektor', label: 'Konstituert rektor' },
+  { value: 'Rektors stedfortreder', label: 'Rektors stedfortreder' },
+  { value: 'Fungerende rektor', label: 'Fungerende rektor' },
+  { value: 'annet', label: 'Annet' },
 ]
 
 const TITLE_OPTIONS = [
@@ -51,10 +56,14 @@ const TITLE_OPTIONS = [
 
 const LS_KEY = 'ansettelse_form'
 
+function createDefaultTeamMember() {
+  return { navn: '', tittel: '', customTittel: '' }
+}
+
 function createDefaultTeam() {
   return [
-    { navn: '', tittel: '' },
-    { navn: '', tittel: '' },
+    createDefaultTeamMember(),
+    createDefaultTeamMember(),
   ]
 }
 
@@ -80,16 +89,30 @@ function createDefaultState() {
     innstillingsdato: '',
     tilsettingsdato: '',
     vedtakstid: '',
-    kandidattype: 'vikariat',
-    syncKandidattype: true,
     pronomen: 'Han',
     fraDato: '',
     tilDato: '',
+    annenSignatur: false,
     signaturnavn: '',
     signaturttittel: 'Rektor',
     customTitle: '',
     team: createDefaultTeam(),
   }
+}
+
+function normalizeTeamMember(member) {
+  const nextTitle = member?.tittel || ''
+  const hasKnownTitle = TEAM_ROLE_OPTIONS.some(option => option.value === nextTitle)
+
+  return {
+    navn: member?.navn || '',
+    tittel: hasKnownTitle ? nextTitle : (nextTitle ? 'annet' : ''),
+    customTittel: hasKnownTitle ? (member?.customTittel || '') : nextTitle,
+  }
+}
+
+function resolveTeamTitle(member) {
+  return member.tittel === 'annet' ? member.customTittel.trim() : member.tittel.trim()
 }
 
 function load(key, fallback) {
@@ -109,8 +132,13 @@ function load(key, fallback) {
       ...parsed,
       innstillingsdato: parsed.innstillingsdato ?? parsed.utstedelsesdato ?? '',
       tilsettingsdato: parsed.tilsettingsdato ?? parsed.vedtaksdato ?? parsed.utstedelsesdato ?? '',
+      annenSignatur: parsed.annenSignatur ?? Boolean(
+        (parsed.signaturnavn && parsed.signaturnavn !== parsed.rektorNavn) ||
+        (parsed.signaturttittel && parsed.signaturttittel !== 'Rektor') ||
+        parsed.customTitle
+      ),
       kandidater: restoredCandidates,
-      team: Array.isArray(parsed.team) && parsed.team.length > 0 ? parsed.team : fallback.team,
+      team: Array.isArray(parsed.team) && parsed.team.length > 0 ? parsed.team.map(normalizeTeamMember) : fallback.team,
     }
   } catch {
     return fallback
@@ -191,7 +219,7 @@ export default function HiringPage() {
   function addTeamMember() {
     setForm(previous => ({
       ...previous,
-      team: [...previous.team, { navn: '', tittel: '' }],
+      team: [...previous.team, createDefaultTeamMember()],
     }))
   }
 
@@ -208,8 +236,11 @@ export default function HiringPage() {
     localStorage.removeItem(LS_KEY)
   }
 
-  const resolvedTitle = form.signaturttittel === 'andre' ? form.customTitle : form.signaturttittel
-  const resolvedKandidattype = form.syncKandidattype ? form.stillingstype : form.kandidattype
+  const resolvedSignatureName = form.annenSignatur ? form.signaturnavn : form.rektorNavn
+  const resolvedTitle = form.annenSignatur
+    ? (form.signaturttittel === 'andre' ? form.customTitle : form.signaturttittel)
+    : 'Rektor'
+  const resolvedKandidattype = form.stillingstype
   const activeCandidates = form.kandidater.filter(candidate => candidate.navn.trim() || candidate.prosent.trim())
   const candidatesForDocuments = activeCandidates.length > 0
     ? activeCandidates.map(candidate => ({
@@ -217,7 +248,12 @@ export default function HiringPage() {
         prosent: candidate.prosent.trim(),
       }))
     : [{ navn: '', prosent: '' }]
-  const activeTeam = form.team.filter(member => member.navn.trim() || member.tittel.trim())
+  const activeTeam = form.team
+    .map(member => ({
+      navn: member.navn.trim(),
+      tittel: resolveTeamTitle(member),
+    }))
+    .filter(member => member.navn || member.tittel)
   const hasMultipleCandidates = activeCandidates.length > 1
   const stillingOrd = form.flereStillinger ? 'Stillinger' : 'Stilling'
   const stillingTarget = form.flereStillinger ? 'stillingene' : 'stillingen'
@@ -237,7 +273,7 @@ export default function HiringPage() {
     vedtaksdato: form.tilsettingsdato,
     vedtakstid: form.vedtakstid,
     utstedelsesdato: form.innstillingsdato,
-    signaturnavn: form.signaturnavn,
+    signaturnavn: resolvedSignatureName,
     signaturttittel: resolvedTitle,
     logo,
   }
@@ -257,7 +293,7 @@ export default function HiringPage() {
     fraDato: form.fraDato,
     tilDato: form.tilDato,
     utstedelsesdato: form.tilsettingsdato,
-    signaturnavn: form.signaturnavn,
+    signaturnavn: resolvedSignatureName,
     signaturttittel: resolvedTitle,
     team: activeTeam,
     logo,
@@ -404,21 +440,6 @@ export default function HiringPage() {
             <Field label="Rektors navn (som innstiller)" hint="Brukes i innstilling.">
               <Input value={form.rektorNavn} onChange={value => set('rektorNavn', value)} placeholder="Sascha Njaa Tjelta" />
             </Field>
-            <Field label="Tilsettingstype" hint="Brukes i tilsettingsvedtak.">
-              <Select
-                value={resolvedKandidattype}
-                onChange={value => set('kandidattype', value)}
-                options={KANDIDATTYPE_OPTIONS}
-                disabled={form.syncKandidattype}
-              />
-            </Field>
-            <Field span="full">
-              <SyncToggle
-                checked={form.syncKandidattype}
-                onChange={checked => set('syncKandidattype', checked)}
-                label="Bruk stillingstype også som tilsettingstype"
-              />
-            </Field>
             {!hasMultipleCandidates && (
               <Field label="Pronomen" hint="Brukes når bare én kandidat tilsettes.">
                 <Select value={form.pronomen} onChange={value => set('pronomen', value)} options={PRONOMEN_OPTIONS} />
@@ -430,7 +451,7 @@ export default function HiringPage() {
             <Field label="Til dato (valgfritt)" hint="Brukes i tilsettingsvedtak.">
               <DatePicker value={form.tilDato} onChange={value => set('tilDato', value)} clearable />
             </Field>
-            <Field label="Dato for innstilling" hint="Brukes som signaturdato i innstilling.">
+            <Field label="Dato for innstilling" hint="Brukes som signaturdato i innstilling." span="full">
               <DatePicker value={form.innstillingsdato} onChange={value => set('innstillingsdato', value)} />
             </Field>
             <Field label="Dato for tilsetting" hint="Brukes som signaturdato i tilsettingsvedtak og vedtaksdato i innstilling.">
@@ -447,22 +468,35 @@ export default function HiringPage() {
             <Users size={15} />
             <span className="form-card-title">Intervjuteam</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="team-list">
             {form.team.map((member, index) => (
-              <div key={index} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <div style={{ flex: 1 }}>
-                  <Input
-                    value={member.navn}
-                    onChange={value => setTeamMember(index, 'navn', value)}
-                    placeholder="Navn"
-                  />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Input
-                    value={member.tittel}
-                    onChange={value => setTeamMember(index, 'tittel', value)}
-                    placeholder="Rolle"
-                  />
+              <div key={index} className="team-row">
+                <div className="team-row-content">
+                  <div className="team-row-fields">
+                    <Field label="Navn">
+                      <Input
+                        value={member.navn}
+                        onChange={value => setTeamMember(index, 'navn', value)}
+                        placeholder="Navn"
+                      />
+                    </Field>
+                    <Field label="Rolle">
+                      <Select
+                        value={member.tittel}
+                        onChange={value => setTeamMember(index, 'tittel', value)}
+                        options={TEAM_ROLE_OPTIONS}
+                      />
+                    </Field>
+                  </div>
+                  {member.tittel === 'annet' && (
+                    <Field label="Annen rolle">
+                      <Input
+                        value={member.customTittel}
+                        onChange={value => setTeamMember(index, 'customTittel', value)}
+                        placeholder="Skriv inn rolle"
+                      />
+                    </Field>
+                  )}
                 </div>
                 {form.team.length > 1 && (
                   <button
@@ -492,13 +526,30 @@ export default function HiringPage() {
             <span className="form-card-title">Signering</span>
           </div>
           <div className="form-grid">
+            <Field span="full">
+              <SyncToggle
+                checked={form.annenSignatur}
+                onChange={checked => set('annenSignatur', checked)}
+                label="Annen signatur"
+              />
+            </Field>
             <Field label="Signaturnavn">
-              <Input value={form.signaturnavn} onChange={value => set('signaturnavn', value)} placeholder="Sascha Njaa Tjelta" />
+              <Input
+                value={resolvedSignatureName}
+                onChange={value => set('signaturnavn', value)}
+                placeholder="Sascha Njaa Tjelta"
+                disabled={!form.annenSignatur}
+              />
             </Field>
             <Field label="Tittel">
-              <Select value={form.signaturttittel} onChange={value => set('signaturttittel', value)} options={TITLE_OPTIONS} />
+              <Select
+                value={form.annenSignatur ? form.signaturttittel : 'Rektor'}
+                onChange={value => set('signaturttittel', value)}
+                options={TITLE_OPTIONS}
+                disabled={!form.annenSignatur}
+              />
             </Field>
-            {form.signaturttittel === 'andre' && (
+            {form.annenSignatur && form.signaturttittel === 'andre' && (
               <Field label="Skriv inn tittel" span="full">
                 <Input value={form.customTitle} onChange={value => set('customTitle', value)} placeholder="Tittel" autoFocus />
               </Field>
@@ -574,7 +625,7 @@ export default function HiringPage() {
                 </p>
                 {vedtakPreview && <p className="fp-body" style={{ marginBottom: 18 }}>{vedtakPreview}</p>}
                 <p className="fp-school">{form.skolenavn || <span className="fp-placeholder">Skolens navn</span>}, {form.innstillingsdato || <span className="fp-placeholder">dato</span>}</p>
-                <p className="fp-signer">{form.signaturnavn || <span className="fp-placeholder">Navn</span>}</p>
+                <p className="fp-signer">{resolvedSignatureName || <span className="fp-placeholder">Navn</span>}</p>
                 <p className="fp-title-text">{resolvedTitle || <span className="fp-placeholder">Tittel</span>}</p>
                 {logo && <div className="fp-logo"><img src={logo} alt="Logo" /></div>}
               </div>
@@ -608,7 +659,7 @@ export default function HiringPage() {
                 ))}
                 <p className="fp-body" style={{ marginTop: 22, marginBottom: 18 }}>{tilsettingPreview}</p>
                 <p className="fp-school">{form.skolenavn || <span className="fp-placeholder">Skolens navn</span>}, {form.tilsettingsdato || <span className="fp-placeholder">dato</span>}</p>
-                <p className="fp-signer">{form.signaturnavn || <span className="fp-placeholder">Navn</span>}</p>
+                <p className="fp-signer">{resolvedSignatureName || <span className="fp-placeholder">Navn</span>}</p>
                 <p className="fp-title-text">{resolvedTitle || <span className="fp-placeholder">Tittel</span>}</p>
                 {logo && <div className="fp-logo"><img src={logo} alt="Logo" /></div>}
               </div>

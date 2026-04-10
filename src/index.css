@@ -423,6 +423,35 @@ body {
   align-self: end;
 }
 
+.team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.team-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.team-row-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.team-row-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(240px, 1fr);
+  gap: 12px;
+}
+
+.team-row .btn {
+  align-self: end;
+}
+
 .sync-toggle {
   display: inline-flex;
   align-items: center;
@@ -1255,7 +1284,9 @@ body {
   }
 
   .candidate-row,
-  .candidate-row-fields {
+  .candidate-row-fields,
+  .team-row,
+  .team-row-fields {
     grid-template-columns: 1fr;
   }
 }
