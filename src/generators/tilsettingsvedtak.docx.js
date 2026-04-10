@@ -128,7 +128,7 @@ export async function generateTilsettingsvedtakDOCX(data) {
   const teamParas = (team.length > 0 ? team : []).map(member => (
     para([
       run('- '),
-      run(member.navn || '', { bold: true }),
+      run(member.navn || ''),
       run(member.tittel ? ` (${member.tittel})` : '', { color: '6B7280' }),
     ], { after: 40, leftIndent: 360 })
   ))
@@ -178,10 +178,9 @@ export async function generateTilsettingsvedtakDOCX(data) {
         // Body 2
         para([run(body2)], { after: 120, line: 360 }),
 
-        ...candidates.flatMap(candidate => ([
-          para([run(`- ${candidate.navn}`, { bold: true })], { before: 40, after: 20, leftIndent: 360 }),
-          para([run(`${candidate.prosent}% ${kandidattype}`)], { after: 20, leftIndent: 720 }),
-        ])),
+        ...candidates.map(candidate => (
+          para([run(`- ${candidate.navn}: ${candidate.prosent}% ${kandidattype}`)], { before: 40, after: 20, leftIndent: 360 })
+        )),
 
         // Tilsetting period
         para([run(tilsettingLine)], { after: 160 }),

@@ -169,10 +169,9 @@ export async function generateInnstillingDOCX(data) {
         // Body 2
         para([run(body2)], { after: 160, line: 360 }),
 
-        ...candidates.flatMap(candidate => ([
-          para([run(`- ${candidate.navn}`, { bold: true })], { before: 80, after: 20, leftIndent: 360 }),
-          para([run(`${candidate.prosent}%`)], { after: 40, leftIndent: 720 }),
-        ])),
+        ...candidates.map(candidate => (
+          para([run(`- ${candidate.navn}: ${candidate.prosent}%`)], { before: 80, after: 40, leftIndent: 360 })
+        )),
 
         // Boilerplate
         para([], { after: 120 }),

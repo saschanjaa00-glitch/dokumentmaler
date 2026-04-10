@@ -102,19 +102,11 @@ export function generateInnstillingPDF(data) {
       // Body 2
       { text: body2, fontSize: 12, lineHeight: 1.5, margin: [0, 0, 0, 8] },
 
-      ...candidates.flatMap(candidate => ([
-        {
-          text: `- ${candidate.navn}`,
-          fontSize: 12,
-          bold: true,
-          margin: [24, 4, 0, 0],
-        },
-        {
-          text: `${candidate.prosent}%`,
-          fontSize: 12,
-          margin: [48, 0, 0, 4],
-        },
-      ])),
+      ...candidates.map(candidate => ({
+        text: `- ${candidate.navn}: ${candidate.prosent}%`,
+        fontSize: 12,
+        margin: [24, 4, 0, 4],
+      })),
 
       // Boilerplate blank + text
       { text: '', margin: [0, 12, 0, 0] },
