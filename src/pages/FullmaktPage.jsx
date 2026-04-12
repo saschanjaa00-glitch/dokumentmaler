@@ -159,7 +159,7 @@ export default function FullmaktPage() {
               <Input
                 value={fag}
                 onChange={setFag}
-                placeholder="f.eks. spansk"
+                placeholder="Fagområde"
               />
             </Field>
           </div>
@@ -176,7 +176,7 @@ export default function FullmaktPage() {
               <Input
                 value={school.schoolName}
                 onChange={v => setSchool(p => ({ ...p, schoolName: v }))}
-                placeholder="St. Svithun videregående skole"
+                placeholder="Skolens navn"
               />
             </Field>
             <Field label="Signaturnavn">

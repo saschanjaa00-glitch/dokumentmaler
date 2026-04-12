@@ -347,13 +347,13 @@ export default function HiringPage() {
           </div>
           <div className="form-grid">
             <Field label="Skolens navn" span="full">
-              <Input value={form.skolenavn} onChange={value => set('skolenavn', value)} placeholder="St. Svithun videregående skole" />
+              <Input value={form.skolenavn} onChange={value => set('skolenavn', value)} placeholder="Skolens navn" />
             </Field>
             <Field label="Stillingstittel (fra Jobbnorge e.l.)" span="full">
-              <Input value={form.stillingstittel} onChange={value => set('stillingstittel', value)} placeholder="Undervisningsstilling i realfag" />
+              <Input value={form.stillingstittel} onChange={value => set('stillingstittel', value)} placeholder="Stillingstittel" />
             </Field>
             <Field label="Fag eller fagområde" span="full">
-              <Input value={form.fagomrade} onChange={value => set('fagomrade', value)} placeholder="Realfag" />
+              <Input value={form.fagomrade} onChange={value => set('fagomrade', value)} placeholder="Fag eller fagområde" />
             </Field>
             <Field span="full">
               <SyncToggle
@@ -393,7 +393,7 @@ export default function HiringPage() {
                     <Input
                       value={candidate.navn}
                       onChange={value => setCandidate(index, 'navn', value)}
-                      placeholder="Stine P"
+                      placeholder="Kandidatnavn"
                     />
                   </Field>
                   <Field label="Stillingsprosent">
@@ -438,7 +438,7 @@ export default function HiringPage() {
           </div>
           <div className="form-grid">
             <Field label="Rektors navn (som innstiller)" hint="Brukes i innstilling.">
-              <Input value={form.rektorNavn} onChange={value => set('rektorNavn', value)} placeholder="Sascha Njaa Tjelta" />
+              <Input value={form.rektorNavn} onChange={value => set('rektorNavn', value)} placeholder="Navn" />
             </Field>
             {!hasMultipleCandidates && (
               <Field label="Pronomen" hint="Brukes når bare én kandidat tilsettes.">
@@ -537,7 +537,7 @@ export default function HiringPage() {
               <Input
                 value={resolvedSignatureName}
                 onChange={value => set('signaturnavn', value)}
-                placeholder="Sascha Njaa Tjelta"
+                placeholder="Navn"
                 disabled={!form.annenSignatur}
               />
             </Field>
