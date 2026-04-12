@@ -1,10 +1,20 @@
+import React from 'react'
+
 export function Field({ label, hint, span, children }) {
   const cls = ['field', span === 2 ? 'span-2' : '', span === 'full' ? 'span-full' : '']
     .filter(Boolean)
     .join(' ')
+  const isFilled = React.Children.toArray(children).some(
+    child => React.isValidElement(child) && child.props.value !== undefined && String(child.props.value).trim() !== ''
+  )
   return (
     <div className={cls}>
-      {label && <label>{label}</label>}
+      {label && (
+        <label>
+          {label}
+          {isFilled && <span className="field-check">✓</span>}
+        </label>
+      )}
       {children}
       {hint && <span className="input-hint">{hint}</span>}
     </div>
