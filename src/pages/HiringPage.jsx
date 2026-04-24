@@ -230,6 +230,12 @@ export default function HiringPage() {
     }))
   }
 
+  useEffect(() => {
+    if (form.kandidater.length > 1) {
+      set('pronomen', 'De')
+    }
+  }, [form.kandidater.length])
+
   function clearAll() {
     setForm(createDefaultState())
     setLogo(null)
@@ -429,6 +435,11 @@ export default function HiringPage() {
               </button>
             </div>
           </div>
+          <div className="form-grid" style={{ marginTop: 12 }}>
+            <Field label="Pronomen" hint={hasMultipleCandidates ? 'Automatisk satt til «De» for flere kandidater.' : 'Brukes når bare én kandidat tilsettes.'}>
+              <Select value={hasMultipleCandidates ? 'De' : form.pronomen} onChange={value => set('pronomen', value)} options={PRONOMEN_OPTIONS} disabled={hasMultipleCandidates} />
+            </Field>
+          </div>
         </div>
 
         <div className="form-card">
@@ -440,11 +451,6 @@ export default function HiringPage() {
             <Field label="Rektors navn (som innstiller)" hint="Brukes i innstilling.">
               <Input value={form.rektorNavn} onChange={value => set('rektorNavn', value)} placeholder="Navn" />
             </Field>
-            {!hasMultipleCandidates && (
-              <Field label="Pronomen" hint="Brukes når bare én kandidat tilsettes.">
-                <Select value={form.pronomen} onChange={value => set('pronomen', value)} options={PRONOMEN_OPTIONS} />
-              </Field>
-            )}
             <Field label="Fra dato" hint="Brukes i tilsettingsvedtak.">
               <DatePicker value={form.fraDato} onChange={value => set('fraDato', value)} />
             </Field>
